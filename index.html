@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuickBooks AI Operations Assistant | Portfolio</title>
+<meta name="description" content="AI-assisted bookkeeping operations and exception management built with n8n, QuickBooks Online, Airtable, Google Drive, Gmail and Claude. Portfolio project with fictional sample data.">
+<style>
+:root{
+  --bg:#f7f6f2;--surface:#ffffff;--ink:#1d2321;--muted:#5d6763;--line:#e2e0d8;
+  --brand:#1f6f5c;--brand-ink:#ffffff;--brand-soft:#e3f0ec;--accent:#b4541f;--accent-soft:#fbeee4;
+  --ok:#2f7d4f;--warn:#9a6a00;--radius:14px;--shadow:0 1px 2px rgba(0,0,0,.04),0 6px 24px rgba(0,0,0,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121614;--surface:#1a201e;--ink:#e8ece9;--muted:#a3ada8;--line:#2c3431;
+  --brand:#5fbfa3;--brand-ink:#0d1210;--brand-soft:#1d2e29;--accent:#f0a06a;--accent-soft:#33241a;
+  --ok:#73c995;--warn:#e2b84d;--shadow:none;}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+a{color:var(--brand)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;height:56px}
+.logo{font-weight:700;letter-spacing:-.01em;text-decoration:none;color:var(--ink)}
+nav a{color:var(--muted);text-decoration:none;font-size:14px;margin-left:16px}
+nav a:hover{color:var(--ink)}
+@media (max-width:760px){nav{display:none}}
+.hero{padding:56px 0 32px}
+.tag{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:4px 10px}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.12;letter-spacing:-.02em;margin:14px 0 12px}
+.lead{font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:760px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.chip{font-size:13px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:28px}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.stat b{display:block;font-size:26px;letter-spacing:-.02em}
+.stat span{font-size:13px;color:var(--muted)}
+section{padding:40px 0;border-top:1px solid var(--line)}
+h2{font-size:clamp(22px,3vw,28px);letter-spacing:-.01em;margin:0 0 6px}
+.sub{color:var(--muted);margin:0 0 22px;max-width:760px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:860px){.g3{grid-template-columns:1fr 1fr}}
+@media (max-width:620px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 6px;font-size:17px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.lane{position:relative;padding-top:42px}
+.lane .num{position:absolute;top:14px;left:18px;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:6px;padding:2px 8px}
+.lane .when{position:absolute;top:14px;right:18px;font-size:12px;color:var(--muted)}
+.human{border-left:4px solid var(--accent)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:8px}
+.step{flex:1 1 150px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px}
+.step b{display:block;font-size:13px;color:var(--brand);margin-bottom:2px}
+.step.person{background:var(--accent-soft);border-color:transparent}
+.step.person b{color:var(--accent)}
+.arrow{align-self:center;color:var(--muted);font-weight:700}
+@media (max-width:620px){.arrow{transform:rotate(90deg);width:100%;text-align:center}}
+.gate{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+@media (max-width:760px){.gate{grid-template-columns:1fr 1fr}}
+.gate div{background:var(--brand-soft);border-radius:10px;padding:12px;font-size:14px}
+.gate div b{display:block;font-size:20px}
+table{width:100%;border-collapse:collapse;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600;background:color-mix(in srgb,var(--surface) 92%,var(--line))}
+tr:last-child td{border-bottom:0}
+.tbl{overflow-x:auto;border-radius:var(--radius)}
+.ok{color:var(--ok);font-weight:600;white-space:nowrap}.wn{color:var(--warn);font-weight:600;white-space:nowrap}
+.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:860px){.shots{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.shots{grid-template-columns:1fr}}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+figure button{all:unset;cursor:zoom-in;display:block;width:100%}
+figure img{display:block;width:100%;height:190px;object-fit:cover;object-position:top left;border-bottom:1px solid var(--line)}
+figure.wide{grid-column:1/-1}
+figure.wide img{height:auto;max-height:520px;object-fit:cover;object-position:top}
+figcaption{padding:10px 14px;font-size:14px;color:var(--muted)}
+figcaption b{color:var(--ink)}
+dialog{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog::backdrop{background:rgba(0,0,0,.82)}
+dialog img{max-width:96vw;max-height:86vh;display:block;border-radius:8px;background:#fff}
+dialog p{color:#fff;text-align:center;margin:8px 0 0;font-size:14px}
+dialog .x{position:fixed;top:12px;right:16px;background:#fff;color:#000;border:0;border-radius:999px;width:36px;height:36px;font-size:20px;cursor:pointer}
+.process{counter-reset:s;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+@media (max-width:860px){.process{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:520px){.process{grid-template-columns:1fr 1fr}}
+.process div{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px}
+.process div::before{content:counter(s);display:inline-grid;place-items:center;width:24px;height:24px;border-radius:999px;background:var(--brand);color:var(--brand-ink);font-size:12px;font-weight:700;margin-bottom:8px}
+.process b{display:block}
+.process span{color:var(--muted)}
+ul.clean{margin:0;padding-left:18px}ul.clean li{margin:4px 0}
+.cta{background:var(--brand);color:var(--brand-ink);border-radius:var(--radius);padding:28px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between}
+.cta h2{color:inherit}.cta p{margin:0;opacity:.9}
+.btn{display:inline-block;background:var(--brand-ink);color:var(--brand);text-decoration:none;font-weight:600;border-radius:10px;padding:10px 16px}
+footer{padding:28px 0 40px;color:var(--muted);font-size:14px;text-align:center;border-top:1px solid var(--line)}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.demo-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--surface) 90%,var(--line))}
+.dtab,.dreset{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 14px;cursor:pointer}
+.dtab.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.dreset{margin-left:auto;color:var(--muted)}
+.demo-body{display:grid;grid-template-columns:1fr 300px}
+@media (max-width:900px){.demo-body{grid-template-columns:1fr}}
+.demo-main{padding:16px;min-width:0}
+.demo-log{border-left:1px solid var(--line);padding:16px;background:color-mix(in srgb,var(--surface) 94%,var(--line))}
+@media (max-width:900px){.demo-log{border-left:0;border-top:1px solid var(--line)}}
+.demo-log h3{margin:0;font-size:16px}
+.demo-log ol{margin:10px 0 0;padding-left:18px;font-size:13px;max-height:520px;overflow:auto}
+.demo-log li{margin:0 0 8px}
+.demo-log li span{color:var(--muted);display:block;font-size:12px}
+.dpanel{display:none}.dpanel.on{display:block}
+.hint{font-size:14px;background:var(--brand-soft);border-radius:10px;padding:10px 12px;margin:0 0 14px}
+.exp{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.exp-top{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.exp-top b{font-size:15px}.exp-top .amt{margin-left:auto;font-weight:700}
+.meta{font-size:13px;color:var(--muted)}
+.flag{display:inline-block;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 8px;margin-left:6px}
+.sug{margin:8px 0;font-size:14px}
+.conf{display:inline-block;min-width:44px;text-align:center;font-weight:700;border-radius:6px;padding:0 6px;background:var(--brand-soft);color:var(--brand)}
+.conf.low{background:var(--accent-soft);color:var(--accent)}
+details{font-size:13px;color:var(--muted)}
+summary{cursor:pointer;color:var(--brand)}
+.gate-list{list-style:none;padding:0;margin:6px 0 0}
+.gate-list li::before{content:attr(data-r);display:inline-block;width:20px;font-weight:700}
+.gate-list li.p::before{color:var(--ok)}.gate-list li.f::before{color:var(--accent)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.dsel,.dinput{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.dinput{width:100%;margin:4px 0 10px;display:block}
+textarea.dinput{resize:vertical;line-height:1.5}
+.res{margin-top:8px;font-size:13px;border-radius:8px;padding:8px 10px;white-space:normal;font-weight:400;overflow-wrap:anywhere}
+.res.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ink)}
+.res.no{background:var(--accent-soft);color:var(--ink)}
+.res.info{background:var(--brand-soft);color:var(--ink)}
+.dactions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.dbtn{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:10px;padding:9px 14px;cursor:pointer;background:var(--brand);color:var(--brand-ink)}
+.dbtn.alt{background:var(--surface);color:var(--ink);border:1px solid var(--line);font-weight:500}
+.dbtn.time{background:var(--accent-soft);color:var(--accent)}
+.dbtn:disabled{opacity:.45;cursor:not-allowed}
+.dcard{border:1px solid var(--line);border-radius:12px;padding:14px}
+.drow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.lbl{font-size:13px;color:var(--muted)}
+.pill{font-size:13px;font-weight:600;border-radius:999px;padding:2px 10px;background:var(--brand-soft);color:var(--brand)}
+.pill.warn{background:var(--accent-soft);color:var(--accent)}
+.dnote{font-size:14px;margin-top:10px}
+.steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.steps span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--muted)}
+.steps span.done{background:var(--brand-soft);border-color:transparent;color:var(--brand)}
+.steps span.now{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);font-weight:600}
+.steps span.alert{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="#">QuickBooks AI Ops Assistant</a>
+  <nav><a href="#problem">Problem</a><a href="#lanes">How it works</a><a href="#demo">Try it</a><a href="#screens">Screenshots</a><a href="#tests">Testing</a><a href="#impact">Impact</a><a href="#work">Working together</a></nav>
+</div></header>
+
+<main class="wrap">
+<div class="hero">
+  <span class="tag">Portfolio project · Fictional / sample data</span>
+  <h1>QuickBooks AI Operations Assistant</h1>
+  <p class="lead">An AI-assisted bookkeeping operations system for small bookkeeping firms. It reviews uncategorized expenses, catches exceptions, chases missing receipts and overdue invoices, and sends a weekly summary. <strong>A person stays in control of every decision that matters.</strong></p>
+  <p style="margin:20px 0 0"><a class="dbtn" style="display:inline-block;text-decoration:none" href="#demo">Try the interactive demo →</a></p>
+  <div class="chips"><span class="chip">n8n</span><span class="chip">QuickBooks Online API</span><span class="chip">Airtable</span><span class="chip">Google Drive</span><span class="chip">Gmail</span><span class="chip">Claude via OpenRouter</span></div>
+  <div class="stats">
+    <div class="stat"><b>7</b><span>automated lanes in one workflow</span></div>
+    <div class="stat"><b>5</b><span>Airtable tables for review, exceptions, requests, invoices and audit</span></div>
+    <div class="stat"><b>~$0.001</b><span>AI cost per transaction reviewed (measured in sandbox)</span></div>
+    <div class="stat"><b>0</b><span>client or customer emails sent without a person's approval</span></div>
+  </div>
+</div>
+
+<section id="problem">
+  <h2>The business problem</h2>
+  <p class="sub">Small bookkeeping firms lose hours every week on repetitive work that still needs professional judgment.</p>
+  <div class="grid g3">
+    <div class="card"><h3>Uncategorized transactions</h3><p>Expenses land in "Uncategorized Expense" and wait for someone to categorize them one by one.</p></div>
+    <div class="card"><h3>Errors slip through</h3><p>Duplicates, missing vendors and unusually large amounts are easy to miss in a long list.</p></div>
+    <div class="card"><h3>Missing receipts</h3><p>Expenses above the receipt threshold have no supporting document, and chasing clients is manual.</p></div>
+    <div class="card"><h3>Overdue invoices</h3><p>Customer follow-ups depend on someone remembering, so they're inconsistent.</p></div>
+    <div class="card"><h3>No weekly view</h3><p>The team lead has no single summary of what's waiting, what's overdue and what failed.</p></div>
+    <div class="card human"><h3>The constraint</h3><p>Accounting judgment can't be handed to an AI. The system had to recommend, not decide.</p></div>
+  </div>
+</section>
+
+<section id="lanes">
+  <h2>How it works</h2>
+  <p class="sub">One n8n workflow organised into lanes. Each lane runs on its own schedule and shares one configuration and one error-alert path.</p>
+  <div class="grid g3">
+    <div class="card lane"><span class="num">LANE 1</span><span class="when">Weekdays 8:00 · 13:00</span><h3>Transaction intake</h3><p>Reads expenses waiting in QuickBooks' holding account and flags duplicates, missing vendor or description, large amounts and multi-line items.</p></div>
+    <div class="card lane"><span class="num">LANE 1b</span><span class="when">Weekdays 8:15 · 13:15</span><h3>Jev review &amp; decision</h3><p>Jev (the AI assistant) suggests a category from the real account list, with a confidence score and reasoning. Business rules decide what happens next.</p></div>
+    <div class="card lane"><span class="num">LANE 2</span><span class="when">Every 2 hours</span><h3>Approval sync</h3><p>Sends approved categories to QuickBooks after re-checking the live expense. Only the category changes, and never twice.</p></div>
+    <div class="card lane"><span class="num">LANE 3</span><span class="when">Weekdays 9:00 · 14:00</span><h3>Receipts &amp; requests</h3><p>Matches $100+ expenses to receipts in Drive. Jev drafts requests for missing ones, and a person approves before anything is sent.</p></div>
+    <div class="card lane"><span class="num">LANE 5</span><span class="when">Weekdays 9:30</span><h3>Overdue invoices</h3><p>Tracks past-due invoices, drafts polite reminders for approval, follows up after 7 days, escalates to a person, and detects payments.</p></div>
+    <div class="card lane"><span class="num">LANE 6</span><span class="when">Mondays 7:45</span><h3>Weekly report</h3><p>Builds the week's figures from Airtable. Jev writes a short summary using only those numbers, and the team gets a "Needs a person" list.</p></div>
+  </div>
+  <p class="note">Lane 4 is the crash alert: if a live run fails unexpectedly, the team gets an email with the execution ID, the failing step and the error.</p>
+
+  <h3 style="margin:32px 0 10px">An expense from start to finish</h3>
+  <div class="flow">
+    <div class="step"><b>QuickBooks</b>Expense waits in "Uncategorized"</div><div class="arrow">→</div>
+    <div class="step"><b>Intake</b>Queued and checked for issues</div><div class="arrow">→</div>
+    <div class="step"><b>Jev</b>Suggests category + confidence</div><div class="arrow">→</div>
+    <div class="step person"><b>Rules or a person</b>Approve, change or reject</div><div class="arrow">→</div>
+    <div class="step"><b>Sync</b>Re-checks, then updates the category</div>
+  </div>
+
+  <h3 style="margin:32px 0 6px">The auto-approval gate</h3>
+  <p class="sub" style="margin-bottom:0">An expense skips human review only if <strong>all four</strong> conditions pass. Everything else goes to a person.</p>
+  <div class="gate">
+    <div><b>≥ 95</b>AI confidence</div>
+    <div><b>Seen before</b>Same vendor already approved with this category</div>
+    <div><b>&lt; $500</b>Amount</div>
+    <div><b>No flags</b>No duplicate, missing data or large amount</div>
+  </div>
+
+  <div class="grid g2" style="margin-top:8px">
+    <div class="card"><h3>Built-in safeguards</h3>
+      <ul class="clean">
+        <li>Potential duplicates are flagged, never deleted or reversed</li>
+        <li>QuickBooks is re-read right before every update</li>
+        <li>Invalid reviewer input is refused, with a plain-language reason</li>
+        <li>Test mode sends every email to a test inbox</li>
+      </ul></div>
+    <div class="card"><h3>Full audit trail</h3>
+      <ul class="clean">
+        <li>Every run, AI review, QuickBooks update, email and error is logged</li>
+        <li>Failures are retried, then alert the team with cleaned messages (no tokens)</li>
+        <li>If the AI is unavailable, items go to a person</li>
+      </ul></div>
+  </div>
+</section>
+
+<section id="demo">
+  <h2>Try it: you are the reviewer</h2>
+  <p class="sub">A hands-on simulation of the daily routine, using the same rules as the real system. It runs entirely in your browser with fictional data; nothing is connected to QuickBooks or sends email.</p>
+  <div class="demo">
+    <div class="demo-tabs" role="tablist">
+      <button class="dtab on" data-tab="exp" role="tab">1. Review expenses</button>
+      <button class="dtab" data-tab="rcpt" role="tab">2. Missing receipt</button>
+      <button class="dtab" data-tab="inv" role="tab">3. Overdue invoice</button>
+      <button class="dreset" id="dReset" type="button">Reset demo</button>
+    </div>
+    <div class="demo-body">
+      <div class="demo-main">
+        <!-- Expenses -->
+        <div class="dpanel on" id="p-exp">
+          <p class="hint"><b>Your job:</b> for each expense, check Jev's suggestion and choose <b>Approve</b> (use Jev's category), <b>Change</b> (pick another category) or <b>Reject</b> (leave QuickBooks untouched). Then click <b>Send approved items to QuickBooks</b>. Try a mistake too, like choosing Change without picking a category, and see what happens.</p>
+          <div id="expList"></div>
+          <div class="dactions"><button class="dbtn" id="syncBtn" type="button">Send approved items to QuickBooks</button></div>
+        </div>
+        <!-- Receipt -->
+        <div class="dpanel" id="p-rcpt">
+          <p class="hint"><b>Scenario:</b> a $1,250 Office Depot expense has no receipt in the receipts folder. Jev drafted a request to the client. Edit it if you like, then approve it. Nothing is sent until you do.</p>
+          <div class="steps" id="rcptSteps"></div>
+          <div class="dcard">
+            <div class="drow"><span class="lbl">Status</span><span class="pill" id="rcptStatus"></span></div>
+            <label class="lbl" for="rcptSubj">Draft subject</label>
+            <input id="rcptSubj" class="dinput">
+            <label class="lbl" for="rcptBody">Draft body (written by Jev)</label>
+            <textarea id="rcptBody" class="dinput" rows="7"></textarea>
+            <div class="dactions" id="rcptActions"></div>
+            <div class="dnote" id="rcptNote"></div>
+          </div>
+        </div>
+        <!-- Invoice -->
+        <div class="dpanel" id="p-inv">
+          <p class="hint"><b>Scenario:</b> invoice 1007 (John Melton, $450.00) is 24 days overdue. Jev drafted a friendly reminder. Approve it, then move time forward to see the follow-up, escalation and payment rules.</p>
+          <div class="steps" id="invSteps"></div>
+          <div class="dcard">
+            <div class="drow"><span class="lbl">Status</span><span class="pill" id="invStatus"></span><span class="lbl" style="margin-left:auto">Reminders sent: <b id="invCount">0</b></span></div>
+            <label class="lbl" for="invBody">Draft reminder (written by Jev)</label>
+            <textarea id="invBody" class="dinput" rows="7"></textarea>
+            <div class="dactions" id="invActions"></div>
+            <div class="dnote" id="invNote"></div>
+          </div>
+        </div>
+      </div>
+      <aside class="demo-log">
+        <h3>Audit log</h3>
+        <p class="lbl">Every action is recorded, just like the real system.</p>
+        <ol id="dLog"></ol>
+      </aside>
+    </div>
+  </div>
+  <p class="note">Simulation for illustration. The real system runs these steps on a schedule in n8n, with your team working in Airtable.</p>
+</section>
+
+<section id="screens">
+  <h2>Screenshots</h2>
+  <p class="sub">From the working system on fictional sample data. Private details are blurred. Click any image to enlarge it.</p>
+  <div class="shots">
+    <figure class="wide"><button data-full="screenshots/00-n8n-workflow-all-lanes.jpg"><img loading="lazy" src="screenshots/00-n8n-workflow-all-lanes.jpg" alt="n8n canvas showing every lane of the workflow"></button><figcaption><b>The whole system in n8n.</b> Each lane starts from its own schedule, shares one Config, and sends failures to one alert path.</figcaption></figure>
+    <figure class="wide"><button data-full="screenshots/00b-n8n-lane5-invoice-followup.jpg"><img loading="lazy" src="screenshots/00b-n8n-lane5-invoice-followup.jpg" alt="Lane 5 overdue invoice follow-up nodes"></button><figcaption><b>Lane 5 close-up:</b> plan → Jev drafts → approved emails sent → statuses and audit updated.</figcaption></figure>
+    <figure><button data-full="screenshots/01-airtable-review-queue-expenses-and-flags.png"><img loading="lazy" src="screenshots/01-airtable-review-queue-expenses-and-flags.png" alt="Review queue with expenses and exception flags"></button><figcaption><b>Review queue:</b> expenses from QuickBooks, with exception flags.</figcaption></figure>
+    <figure><button data-full="screenshots/02-airtable-review-queue-ai-suggestions.png"><img loading="lazy" src="screenshots/02-airtable-review-queue-ai-suggestions.png" alt="AI suggested categories with confidence and reasoning"></button><figcaption><b>Jev's suggestions:</b> category, confidence and reasoning.</figcaption></figure>
+    <figure><button data-full="screenshots/03-airtable-review-queue-decisions.png"><img loading="lazy" src="screenshots/03-airtable-review-queue-decisions.png" alt="Decision and rule applied columns"></button><figcaption><b>Rules applied:</b> why each item needs a person.</figcaption></figure>
+    <figure><button data-full="screenshots/04-airtable-document-requests-status.png"><img loading="lazy" src="screenshots/04-airtable-document-requests-status.png" alt="Document request statuses"></button><figcaption><b>Receipt requests:</b> approved, verified, escalated, cancelled.</figcaption></figure>
+    <figure><button data-full="screenshots/05-airtable-document-requests-tracking.png"><img loading="lazy" src="screenshots/05-airtable-document-requests-tracking.png" alt="Document request tracking dates"></button><figcaption><b>Request tracking:</b> reviewer, sent date, follow-up and received date.</figcaption></figure>
+    <figure><button data-full="screenshots/06-airtable-invoice-followups-aging.png"><img loading="lazy" src="screenshots/06-airtable-invoice-followups-aging.png" alt="Invoice follow-ups with aging buckets"></button><figcaption><b>Overdue invoices:</b> status, days overdue, aging bucket, balance.</figcaption></figure>
+    <figure><button data-full="screenshots/07-airtable-invoice-followups-reminders.png"><img loading="lazy" src="screenshots/07-airtable-invoice-followups-reminders.png" alt="Invoice reminder counts and drafts"></button><figcaption><b>Reminder cadence:</b> count, last sent, next check, Jev's draft.</figcaption></figure>
+    <figure><button data-full="screenshots/08-email-invoice-reminder-test.png"><img loading="lazy" src="screenshots/08-email-invoice-reminder-test.png" alt="Approved invoice reminder email in test mode"></button><figcaption><b>An approved reminder</b>, sent in test mode.</figcaption></figure>
+    <figure><button data-full="screenshots/09-email-weekly-report-summary.png"><img loading="lazy" src="screenshots/09-email-weekly-report-summary.png" alt="Weekly report summary and needs-a-person list"></button><figcaption><b>Weekly report:</b> AI summary and "Needs a person" list.</figcaption></figure>
+    <figure><button data-full="screenshots/10-email-weekly-report-figures.png"><img loading="lazy" src="screenshots/10-email-weekly-report-figures.png" alt="Weekly report figures"></button><figcaption><b>Weekly figures:</b> expenses, exceptions, receipts.</figcaption></figure>
+    <figure><button data-full="screenshots/11-email-weekly-report-invoices-health.png"><img loading="lazy" src="screenshots/11-email-weekly-report-invoices-health.png" alt="Weekly report invoices and system health"></button><figcaption><b>Invoices and system health</b>, including safety-check refusals.</figcaption></figure>
+    <figure><button data-full="screenshots/12-email-error-alert.png"><img loading="lazy" src="screenshots/12-email-error-alert.png" alt="Error alert email"></button><figcaption><b>Error alert</b> from a deliberate failure test: clean, no tokens.</figcaption></figure>
+  </div>
+</section>
+
+<section id="tests">
+  <h2>Testing</h2>
+  <p class="sub">Every feature was run end to end against a QuickBooks sandbox and checked in the n8n execution logs, including deliberate failures.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>What was tested</th><th>Result</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Intake of 30 fictional expenses, then a re-run</td><td>30 queued, 9 flagged; re-run created 0 duplicates</td><td class="ok">Tested</td></tr>
+      <tr><td>AI review + decision rules</td><td>29 items reviewed; AI failure routed to a person</td><td class="ok">Tested</td></tr>
+      <tr><td>Approval sync to QuickBooks</td><td>Category-only updates; rejected item untouched; repeat update refused</td><td class="ok">Tested</td></tr>
+      <tr><td>Auto-approval end to end</td><td>New expense → confidence 98 → category updated in QuickBooks</td><td class="ok">Tested</td></tr>
+      <tr><td>Receipt check → request → approval → send → received / escalated</td><td>All status changes verified; reviewer's edited text used</td><td class="ok">Tested</td></tr>
+      <tr><td>Overdue invoices: drafts, approval, send, follow-up, escalation, paid, partial payment, on hold</td><td>All paths verified; no duplicate records</td><td class="ok">Tested</td></tr>
+      <tr><td>Weekly report</td><td>Figures matched Airtable; error types counted separately after a fix</td><td class="ok">Tested</td></tr>
+      <tr><td>Bad reviewer input, email failure, Airtable failure, live crash</td><td>Safe stop, clear status, alert email in every case</td><td class="ok">Tested</td></tr>
+      <tr><td>Receipt-request send failure</td><td>Same logic as invoice reminders (tested)</td><td class="wn">Not tested separately</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="impact">
+  <h2>Business impact: what is measured and what is not</h2>
+  <p class="sub">This is a portfolio build on fictional data, so I only claim what was measured.</p>
+  <div class="grid g2">
+    <div class="card"><h3>Measured in the sandbox</h3>
+      <ul class="clean">
+        <li>AI cost ≈ <strong>$0.001 per transaction</strong> reviewed</li>
+        <li>Weekly report ≈ 6 Airtable API calls, no QuickBooks calls</li>
+        <li>Scheduled runs stay within Airtable's free-plan API limit</li>
+      </ul></div>
+    <div class="card"><h3>Not claimed, and how a firm would measure it</h3>
+      <ul class="clean">
+        <li>Minutes per expense, before vs. after</li>
+        <li>Share of AI suggestions approved vs. changed</li>
+        <li>Receipts collected per week; days-to-payment on reminded invoices</li>
+      </ul>
+      <p class="note">All of these can be read from the system's Audit Log during a pilot.</p></div>
+  </div>
+  <h3 style="margin:26px 0 8px">Known limitations</h3>
+  <ul class="clean">
+    <li>QuickBooks bank-feed "For Review" items aren't available through the API, so the system works on expenses posted to a holding account.</li>
+    <li>Multi-line expenses and credits are always left to a person.</li>
+    <li>The weekly AI summary can occasionally add an explanation that isn't in the data. The tables are the source of truth.</li>
+  </ul>
+</section>
+
+<section id="work">
+  <h2>How I work with clients</h2>
+  <p class="sub">The first deliverable is clarity: what the problem costs and how we'll know the fix worked. The automation comes after that.</p>
+  <div class="process">
+    <div><b>Discovery</b><span>Walk through the current process, volumes and risks</span></div>
+    <div><b>Proposal</b><span>Outcomes, scope, what's not included, timeline</span></div>
+    <div><b>Access</b><span>Client-owned accounts; keys never shared in chat</span></div>
+    <div><b>Build &amp; test</b><span>Test mode, sandbox data, a mid-build demo</span></div>
+    <div><b>Turnover</b><span>Owner SOP, technical guide, handover call</span></div>
+    <div><b>Support</b><span>30-day bug-fix window, then a retainer</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="cta">
+    <div><h2>Want something like this for your firm?</h2><p>I build practical automations that keep your team in control.</p></div>
+    <a class="btn" href="mailto:mjmendoza.workph@gmail.com?subject=Automation%20inquiry">Email me</a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    Michael Mendoza • mjmendoza.workph@gmail.com<br>
+    <span>Portfolio project · Fictional / Sample Data · QuickBooks Online sandbox</span>
+  </div>
+</footer>
+
+<dialog id="lb"><button class="x" aria-label="Close">×</button><img alt=""><p></p></dialog>
+<script>
+(function(){
+  var d=document.getElementById('lb'),img=d.querySelector('img'),cap=d.querySelector('p');
+  document.querySelectorAll('figure button').forEach(function(b){
+    b.addEventListener('click',function(){
+      img.src=b.getAttribute('data-full');
+      img.alt=b.querySelector('img').alt;
+      var fc=b.parentNode.querySelector('figcaption');cap.textContent=fc?fc.textContent:'';
+      if(d.showModal)d.showModal();else window.open(img.src,'_blank');
+    });
+  });
+  d.querySelector('.x').addEventListener('click',function(){d.close();});
+  d.addEventListener('click',function(e){if(e.target===d)d.close();});
+})();
+</script>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var CATS=['Advertising','Automobile:Fuel','Dues & Subscriptions','Legal & Professional Fees','Meals and Entertainment','Office Expenses','Rent or Lease','Supplies','Travel','Utilities'];
+  var EXP0=[
+    {id:'QB-176',vendor:'Shell',amt:38.75,desc:'Fuel',flags:[],sug:'Automobile:Fuel',conf:98,reason:'Fuel station purchase; this vendor was previously approved as Automobile:Fuel.',g:[1,1,1,1],auto:true},
+    {id:'QB-158',vendor:'Delta Air Lines',amt:412.60,desc:'Flight to client site',flags:[],sug:'Travel',conf:95,reason:'Airline ticket for a client visit is a travel expense.',g:[1,0,1,1]},
+    {id:'QB-157',vendor:'Bluebird Cafe',amt:46.80,desc:'Client lunch meeting',flags:[],sug:'Meals and Entertainment',conf:92,reason:'Cafe purchase described as a client lunch.',g:[0,0,1,1]},
+    {id:'QB-172',vendor:'Office Depot',amt:1250,desc:'Office equipment - standing desk',flags:[],sug:'Office Expenses',conf:65,reason:'Office equipment, but $1,250 may qualify as a fixed asset. Check whether it should be capitalized.',g:[0,0,0,1]},
+    {id:'QB-156',vendor:'Staples',amt:86.23,desc:'Printer paper and toner',flags:['Potential Duplicate'],sug:'Supplies',conf:92,reason:'Office supplies. Same vendor, amount and date as QB-155: possible duplicate.',g:[0,0,1,0]}
+  ];
+  var GATE=['Confidence 95 or higher','Same vendor approved before with this category','Amount under $500','No exception flags'];
+  var exp,rc,iv,clock;
+  function money(n){return '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+  function log(t){clock++;var li=document.createElement('li');li.innerHTML='<span>Step '+clock+'</span>'+t;$('dLog').insertBefore(li,$('dLog').firstChild)}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+  /* ---------- Expenses ---------- */
+  function renderExp(){
+    var h='';
+    exp.forEach(function(e,i){
+      var gate=e.g.map(function(p,k){return '<li class="'+(p?'p':'f')+'" data-r="'+(p?'✓':'✗')+'">'+GATE[k]+'</li>'}).join('');
+      var locked=e.state==='Synced'||e.state==='Rejected (not changed)';
+      var opts='<option value="">Choose…</option><option'+(e.dec==='Approve'?' selected':'')+'>Approve</option><option'+(e.dec==='Change'?' selected':'')+'>Change</option><option'+(e.dec==='Reject'?' selected':'')+'>Reject</option>';
+      var cats='<option value="">Reviewer category…</option>'+CATS.map(function(c){return '<option'+(e.cat===c?' selected':'')+'>'+esc(c)+'</option>'}).join('');
+      h+='<div class="exp"><div class="exp-top"><b>'+e.id+' · '+esc(e.vendor)+'</b><span class="meta">'+esc(e.desc)+'</span>'+e.flags.map(function(f){return '<span class="flag">'+f+'</span>'}).join('')+'<span class="amt">'+money(e.amt)+'</span></div>'+
+        '<div class="sug">Jev suggests <b>'+esc(e.sug)+'</b> <span class="conf'+(e.conf<80?' low':'')+'">'+e.conf+'</span></div>'+
+        '<details><summary>Why? Jev\'s reasoning and the auto-approval check</summary><p style="margin:6px 0 0">'+esc(e.reason)+'</p><ul class="gate-list">'+gate+'</ul><p style="margin:6px 0 0">'+(e.auto?'All 4 pass, so the rules auto-approved it. No person needed.':'At least one check fails, so a person must decide.')+'</p></details>'+
+        (e.auto?(e.state?'':'<div class="res info">Auto-Approved by the rules (all 4 checks passed). It will be included in the next QuickBooks update.</div>'):
+        '<div class="ctrl"><label class="lbl" for="d'+i+'">Your decision</label><select class="dsel" id="d'+i+'" data-i="'+i+'"'+(locked?' disabled':'')+'>'+opts+'</select><select class="dsel" id="c'+i+'" data-c="'+i+'"'+(locked?' disabled':'')+'>'+cats+'</select></div>')+
+        (e.msg?'<div class="res '+e.cls+'">'+e.msg+'</div>':'')+'</div>';
+    });
+    $('expList').innerHTML=h;
+    document.querySelectorAll('#expList select[data-i]').forEach(function(s){s.onchange=function(){var e=exp[+s.dataset.i];e.dec=s.value;e.msg='';if(e.state==='Sync Failed')e.state='';log('Reviewer set '+e.id+' to <b>'+(s.value||'no decision')+'</b>.')}});
+    document.querySelectorAll('#expList select[data-c]').forEach(function(s){s.onchange=function(){var e=exp[+s.dataset.c];e.cat=s.value;e.msg='';if(e.state==='Sync Failed')e.state='';if(s.value)log('Reviewer picked category <b>'+esc(s.value)+'</b> for '+e.id+'.')}});
+  }
+  function sync(){
+    var n=0;
+    exp.forEach(function(e){
+      if(e.state==='Synced'){e.msg='Already updated. Safety check: the expense is no longer in "Uncategorized Expense", so nothing is changed twice.';e.cls='info';log(e.id+': repeat update <b>refused</b> by the safety check.');return}
+      if(e.state==='Rejected (not changed)')return;
+      var dec=e.auto?'Approve':e.dec;
+      if(!dec){e.msg='';return}
+      n++;
+      if(dec==='Reject'){e.state='Rejected (not changed)';e.msg='Rejected: QuickBooks was left untouched. A person handles it directly.';e.cls='info';log(e.id+' rejected: <b>QuickBooks not changed</b>.');return}
+      if(dec==='Approve'&&e.cat){e.state='Sync Failed';e.msg='<b>Sync Failed:</b> a Reviewer Category is filled but the decision is Approve. Choose Change to use your category, or clear it to use Jev\'s suggestion.';e.cls='no';log(e.id+' <b>not updated</b>: Approve with a category filled. Alert emailed to the team.');return}
+      if(dec==='Change'&&!e.cat){e.state='Sync Failed';e.msg='<b>Sync Failed:</b> the decision is Change but no category was picked. Pick a category or choose Approve.';e.cls='no';log(e.id+' <b>not updated</b>: Change with no category. Alert emailed to the team.');return}
+      var cat=dec==='Change'?e.cat:e.sug;
+      e.state='Synced';e.msg='Re-checked in QuickBooks, then <b>category updated to '+esc(cat)+'</b>. Nothing else on the expense was changed.'+(e.flags.length?' (The duplicate flag was reviewed by a person before approval.)':'');e.cls='ok';
+      log(e.id+' updated in QuickBooks: Uncategorized Expense → <b>'+esc(cat)+'</b>'+(e.auto?' (auto-approved)':' (approved by reviewer)')+'.');
+    });
+    if(!n&&!exp.some(function(e){return e.state==='Synced'}))log('Sync ran: nothing approved yet. Make a decision on at least one expense.');
+    renderExp();
+  }
+
+  /* ---------- Receipt ---------- */
+  var RSTEPS=['Pending Approval','Approved to Send','Requested','Received','Verified'];
+  function renderSteps(el,steps,cur,alert){$(el).innerHTML=steps.map(function(s,i){var k=steps.indexOf(cur);return '<span class="'+(s===alert?'alert':(i<k?'done':(i===k?'now':'')))+'">'+s+'</span>'}).join('')}
+  function renderRc(){
+    var steps=rc.status==='Escalated'?['Pending Approval','Approved to Send','Requested','Escalated']:rc.status==='Cancelled'?['Pending Approval','Cancelled']:RSTEPS;
+    renderSteps('rcptSteps',steps,rc.status,rc.status==='Escalated'?'Escalated':null);
+    $('rcptStatus').textContent=rc.status;$('rcptStatus').className='pill'+(rc.status==='Escalated'||rc.status==='Cancelled'?' warn':'');
+    var ed=rc.status==='Pending Approval';$('rcptSubj').disabled=!ed;$('rcptBody').disabled=!ed;
+    var a='';
+    if(rc.status==='Pending Approval')a='<button class="dbtn" data-a="approve">Approve &amp; send</button><button class="dbtn alt" data-a="cancel">Cancel request</button>';
+    else if(rc.status==='Requested')a='<button class="dbtn time" data-a="upload">Client saves the receipt in Drive</button><button class="dbtn time" data-a="late">3 days pass, no receipt</button>';
+    else if(rc.status==='Received')a='<button class="dbtn" data-a="verify">Check it &amp; mark Verified</button>';
+    $('rcptActions').innerHTML=a;$('rcptNote').innerHTML=rc.note||'';
+    $('rcptActions').querySelectorAll('button').forEach(function(b){b.onclick=function(){rcAct(b.dataset.a)}});
+  }
+  function rcAct(a){
+    if(a==='approve'){
+      if(!$('rcptSubj').value.trim()||!$('rcptBody').value.trim()){rc.note='<b>Not sent:</b> the subject or body is empty. It stays in Pending Approval.';log('Receipt request <b>blocked</b>: empty subject or body.');return renderRc()}
+      rc.status='Requested';rc.note='Emailed to the client (test mode in the real system). Follow-up date set 3 days out. Next run checks the receipts folder for a file named <b>QB-172…</b>';
+      log('Receipt request for QB-172 <b>approved</b> by reviewer and emailed. Follow-up in 3 days.')}
+    if(a==='cancel'){rc.status='Cancelled';rc.note='Cancelled. No email sent.';log('Receipt request for QB-172 <b>cancelled</b> by reviewer.')}
+    if(a==='upload'){rc.status='Received';rc.note='File <b>QB-172 Office Depot receipt.pdf</b> found in the receipts folder. Request marked Received; expense marked Receipt Found. The team gets an email.';log('Receipt for QB-172 <b>found</b> in Drive. Status: Received.')}
+    if(a==='late'){rc.status='Escalated';rc.note='No receipt by the follow-up date. <b>Escalated</b>: the team is emailed to decide the next step (call the client, resend or cancel). No automatic chasing.';log('QB-172 request <b>escalated</b>: follow-up date passed.')}
+    if(a==='verify'){rc.status='Verified';rc.note='Done. The receipt is linked to the expense for the audit trail.';log('QB-172 receipt <b>verified</b> by reviewer.')}
+    renderRc();
+  }
+
+  /* ---------- Invoice ---------- */
+  var D1='Dear John,\n\nWe hope this message finds you well. We wanted to reach out regarding invoice 1007, which was due on September 11, 2026.\n\nInvoice Number: 1007\nOpen Balance: $450.00\n\nIf payment has already been sent, please disregard this message or let us know so we can update our records.\n\nBest regards,\nAccounts Receivable Team, Fictional Client Co.';
+  var D2='Dear John,\n\nWe are following up on invoice 1007 for $450.00, which was due on September 11, 2026 and remains open on our records.\n\nCould you please confirm when we can expect payment? If payment has already been sent, please reply so we can reconcile our records.\n\nThank you,\nAccounts Receivable Team, Fictional Client Co.';
+  function renderIv(){
+    var steps=['Pending Approval','Reminder Sent','Escalated'];
+    if(iv.status==='Paid / Closed')steps=['Pending Approval','Reminder Sent','Paid / Closed'];
+    if(iv.status==='On Hold')steps=['Pending Approval','On Hold'];
+    renderSteps('invSteps',steps,iv.status,iv.status==='Escalated'?'Escalated':null);
+    $('invStatus').textContent=iv.status+(iv.status==='Pending Approval'?' (reminder '+(iv.count+1)+')':'');$('invStatus').className='pill'+(iv.status==='Escalated'||iv.status==='On Hold'?' warn':'');
+    $('invCount').textContent=iv.count;$('invBody').disabled=iv.status!=='Pending Approval';
+    var a='';
+    if(iv.status==='Pending Approval')a='<button class="dbtn" data-a="send">Approve &amp; send</button><button class="dbtn alt" data-a="hold">Put On Hold</button>';
+    else if(iv.status==='Reminder Sent')a='<button class="dbtn time" data-a="week">7 days pass, still unpaid</button><button class="dbtn time" data-a="pay">Customer pays in QuickBooks</button>';
+    else if(iv.status==='Escalated')a='<button class="dbtn time" data-a="pay">Customer pays in QuickBooks</button>';
+    $('invActions').innerHTML=a;$('invNote').innerHTML=iv.note||'';
+    $('invActions').querySelectorAll('button').forEach(function(b){b.onclick=function(){ivAct(b.dataset.a)}});
+  }
+  function ivAct(a){
+    if(a==='send'){if(!$('invBody').value.trim()){iv.note='<b>Not sent:</b> the body is empty.';return renderIv()}
+      iv.count++;iv.status='Reminder Sent';iv.note='Reminder '+iv.count+' emailed. Next check in 7 days.';log('Invoice 1007: reminder '+iv.count+' <b>approved</b> and emailed. Next check in 7 days.')}
+    if(a==='hold'){iv.status='On Hold';iv.note='On Hold (for example, a payment plan was agreed). The system leaves this invoice alone; no more drafts.';log('Invoice 1007 put <b>On Hold</b> by reviewer.')}
+    if(a==='week'){
+      if(iv.count>=2){iv.status='Escalated';iv.note='Still unpaid after 2 reminders. <b>Escalated</b> to a person (phone call, payment plan or On Hold). No more automatic drafts.';log('Invoice 1007 <b>escalated</b>: unpaid after 2 reminders.')}
+      else{iv.status='Pending Approval';$('invBody').value=D2;iv.note='Still unpaid. Jev drafted reminder 2, which is firmer and asks for a payment date. It still needs your approval.';log('Invoice 1007 still unpaid. Jev drafted <b>reminder 2</b> for approval.')}}
+    if(a==='pay'){iv.status='Paid / Closed';iv.note='The invoice is no longer open in QuickBooks, so it\'s marked <b>Paid / Closed</b> and reminders stop automatically.';log('Invoice 1007 paid in QuickBooks: <b>Paid / Closed</b>, reminders stopped.')}
+    renderIv();
+  }
+
+  function reset(){
+    exp=EXP0.map(function(e){return Object.assign({dec:'',cat:'',state:'',msg:'',cls:''},e)});
+    rc={status:'Pending Approval',note:''};iv={status:'Pending Approval',count:0,note:''};clock=0;$('dLog').innerHTML='';
+    $('rcptSubj').value='Missing Receipt for Office Depot Transaction';
+    $('rcptBody').value='Hello,\n\nWe are working through our records and need the receipt for this transaction:\n\nVendor: Office Depot\nAmount: $1,250.00\nDate: September 18, 2026\nDescription: Office equipment - standing desk\n\nCould you please reply to this email with the receipt or invoice attached?\n\nThank you,\nBookkeeping Team';
+    $('invBody').value=D1;
+    renderExp();renderRc();renderIv();
+    log('Demo started: 5 expenses, 1 missing receipt and 1 overdue invoice are waiting.');
+  }
+  document.querySelectorAll('.dtab').forEach(function(t){t.onclick=function(){document.querySelectorAll('.dtab').forEach(function(x){x.classList.remove('on')});document.querySelectorAll('.dpanel').forEach(function(x){x.classList.remove('on')});t.classList.add('on');$('p-'+t.dataset.tab).classList.add('on')}});
+  $('syncBtn').onclick=sync;$('dReset').onclick=reset;
+  reset();
+})();
+</script>
+</body>
+</html>

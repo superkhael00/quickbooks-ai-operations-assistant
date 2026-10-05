@@ -1,0 +1,4627 @@
+{
+  "name": "QuickBooks AI Operations Assistant (Sanitized Example)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8,13 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "ca15c916-cb17-41bc-8e05-25470778c263",
+      "name": "L1 Intake Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { lane: 'intake' } }];"
+      },
+      "id": "7f86fe6e-7343-40b3-b29d-818540d9991a",
+      "name": "L1 Start",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// CONFIGURATION - SANITIZED EXAMPLE. Replace every YOUR_... placeholder and example.com address with your own values.\nconst lane = $input.first().json.lane;\nconst labels = { intake: 'Lane 1 - Transaction Intake', jev: 'Lane 1b - Jev Review & Decision', sync: 'Lane 2 - Approval Sync to QuickBooks', receipts: 'Lane 3 - Receipt Check & Document Requests', invoices: 'Lane 5 - Overdue Invoice Follow-up', weekly: 'Lane 6 - Weekly Report' };\nreturn [{ json: {\n  lane, laneLabel: labels[lane] || lane,\n  workflowName: 'QBAI Ops Assistant / ' + (labels[lane] || lane),\n  qbBase: 'https://sandbox-quickbooks.api.intuit.com/v3/company/YOUR_QBO_COMPANY_ID',\n  holdingAccountId: '31',\n  excludeAccountIds: ['31', '88'],\n  largeAmountThreshold: 2500,\n  highSeverityAmount: 5000,\n  model: 'anthropic/claude-haiku-4.5',\n  autoApproveMinConfidence: 95,\n  autoApproveMaxAmount: 500,\n  reviewThreshold: 80,\n  maxItemsPerRun: 50,\n  receiptThreshold: 100,\n  receiptsFolderId: 'YOUR_DRIVE_RECEIPTS_FOLDER_ID',\n  followUpDays: 3,\n  clientName: 'Fictional Client Co. (Sample Data)',\n  clientContactEmail: 'alerts@example.com',\n  senderName: 'Bookkeeping Team',\n  testMode: true,\n  testRecipient: 'alerts@example.com',\n  airtableBase: 'YOUR_AIRTABLE_BASE_ID',\n  tblReview: 'YOUR_TABLE_ID_TRANSACTION_REVIEW',\n  tblExceptions: 'YOUR_TABLE_ID_EXCEPTIONS',\n  tblAudit: 'YOUR_TABLE_ID_AUDIT_LOG',\n  tblDocReq: 'YOUR_TABLE_ID_DOCUMENT_REQUESTS',\n  tblInvoices: 'YOUR_TABLE_ID_INVOICE_FOLLOWUPS',\n  invoiceMinBalance: 25,\n  reminderGraceDays: 3,\n  reminderIntervalDays: 7,\n  maxReminders: 2,\n  escalateDaysOverdue: 60,\n  arSenderName: 'Accounts Receivable Team, Fictional Client Co.',\n  alertEmail: 'alerts@example.com'\n} }];\n"
+      },
+      "id": "a581136b-bbde-4a95-87b6-c7a4453d8558",
+      "name": "Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "15 8,13 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "89bbb926-d946-40a0-8e93-8977773d5b3e",
+      "name": "L1b Jev Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { lane: 'jev' } }];"
+      },
+      "id": "3e725b88-1b06-450b-9f86-d284181ade2b",
+      "name": "L1b Start",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 8-18/2 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "267d3183-a927-45c0-b81f-9e9491a164c6",
+      "name": "L2 Sync Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { lane: 'sync' } }];"
+      },
+      "id": "6e7c9a1b-0e6f-4140-904f-c985ef50db60",
+      "name": "L2 Start",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.lane }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "intake"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                }
+              },
+              "outputKey": "intake"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.lane }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "jev"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                }
+              },
+              "outputKey": "jev"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.lane }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "sync"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                }
+              },
+              "outputKey": "sync"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.lane }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "receipts"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                }
+              },
+              "outputKey": "receipts"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.lane }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "invoices"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                }
+              },
+              "outputKey": "invoices"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.lane }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "weekly"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                }
+              },
+              "outputKey": "weekly"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3e1f3f16-2008-4ea0-991b-81650b818b3a",
+      "name": "Route to Lane",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.qbBase }}/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "select * from Purchase maxresults 1000"
+            },
+            {
+              "name": "minorversion",
+              "value": "75"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "b9f20f2c-e52c-45bd-bbc2-70d4b80d400f",
+      "name": "L1 Get Expenses (QuickBooks)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "",
+          "name": "QuickBooks Online OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.qbBase }}/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "select Id, Name, FullyQualifiedName, Active from Account where AccountType = 'Expense' maxresults 500"
+            },
+            {
+              "name": "minorversion",
+              "value": "75"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "05076324-86dc-4c56-a4c6-1ebb2be871cd",
+      "name": "L1b Get Expense Accounts (QuickBooks)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        576
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "",
+          "name": "QuickBooks Online OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.qbBase }}/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "select Id, Name, FullyQualifiedName, Active from Account where AccountType = 'Expense' maxresults 500"
+            },
+            {
+              "name": "minorversion",
+              "value": "75"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "6a7c0045-bc2f-45d8-b9e0-1f49fa0396c8",
+      "name": "L2 Get Expense Accounts (QuickBooks)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        896,
+        1248
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "",
+          "name": "QuickBooks Online OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields[]",
+              "value": "QuickBooks ID"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "requestInterval": 250
+            }
+          }
+        }
+      },
+      "id": "fe3cfd34-fe4f-459a-ad36-1c2efeea253f",
+      "name": "L1 Get Existing Review IDs (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        192
+      ],
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst resp = $('L1 Get Expenses (QuickBooks)').first().json;\nconst all = (resp.QueryResponse && resp.QueryResponse.Purchase) || [];\nconst existing = new Set();\nfor (const page of $input.all()) for (const r of (page.json.records || [])) if (r.fields && r.fields['QuickBooks ID']) existing.add(String(r.fields['QuickBooks ID']));\nconst H = String(cfg.holdingAccountId);\nconst isExpense = p => p.Credit !== true;\nconst amt = p => Number(p.TotalAmt || 0).toFixed(2);\nconst dupKey = p => p.EntityRef ? p.EntityRef.value + '|' + amt(p) + '|' + p.TxnDate : null;\nconst groups = {};\nall.filter(isExpense).forEach(p => { const k = dupKey(p); if (k) (groups[k] = groups[k] || []).push(String(p.Id)); });\nconst expLines = p => (p.Line || []).filter(l => l.DetailType === 'AccountBasedExpenseLineDetail' && l.AccountBasedExpenseLineDetail);\nconst holding = all.filter(p => isExpense(p) && expLines(p).some(l => String(l.AccountBasedExpenseLineDetail.AccountRef.value) === H));\nconst now = new Date().toISOString();\nconst abbr = { 'Potential Duplicate': 'DUP', 'Missing Vendor': 'NOVEN', 'Missing Description': 'NODESC', 'Large Amount': 'LARGE', 'Multiple Lines': 'MULTI' };\nconst reviews = [], exceptions = [];\nlet alreadyLogged = 0;\nfor (const p of holding) {\n  const id = String(p.Id);\n  if (existing.has(id)) { alreadyLogged++; continue; }\n  const lines = expLines(p);\n  const desc = lines.map(l => l.Description).filter(Boolean).join(' | ');\n  const vendor = p.EntityRef ? p.EntityRef.name : '';\n  const ex = [];\n  const k = dupKey(p);\n  const others = k ? groups[k].filter(x => x !== id) : [];\n  if (others.length) ex.push(['Potential Duplicate', 'Medium', 'Same vendor, amount and date as QuickBooks expense ' + others.join(', ') + '. Requires review. Do not delete or reverse automatically.', others.join(', ')]);\n  if (!vendor) ex.push(['Missing Vendor', 'Medium', 'No vendor is recorded on this expense.', '']);\n  if (!desc) ex.push(['Missing Description', 'Low', 'No description is recorded on this expense.', '']);\n  if (Number(p.TotalAmt) >= cfg.largeAmountThreshold) ex.push(['Large Amount', Number(p.TotalAmt) >= cfg.highSeverityAmount ? 'High' : 'Medium', 'Amount is at or above the configured review threshold of $' + cfg.largeAmountThreshold + '.', '']);\n  if (lines.length > 1) ex.push(['Multiple Lines', 'Low', 'Expense has ' + lines.length + ' lines. Review each line manually.', '']);\n  const flags = ex.map(e => e[0]);\n  reviews.push({ fields: {\n    'Transaction Key': 'QB-' + id, 'QuickBooks ID': id, 'Sync Token': String(p.SyncToken), 'Txn Date': p.TxnDate,\n    'Vendor': vendor, 'Vendor ID': p.EntityRef ? String(p.EntityRef.value) : '', 'Amount': Number(p.TotalAmt), 'Description': desc,\n    'Payment Account': p.AccountRef ? p.AccountRef.name : '', 'Current Category': lines[0] ? lines[0].AccountBasedExpenseLineDetail.AccountRef.name : '',\n    'Exception Flags': flags, 'Review Status': 'New', 'Processing Date': now\n  }});\n  ex.forEach(e => exceptions.push({ fields: {\n    'Exception Key': abbr[e[0]] + '-QB-' + id, 'Type': e[0], 'QuickBooks ID': id, 'Related IDs': e[3],\n    'Description': (vendor || '(no vendor)') + ' | $' + amt(p) + ' | ' + p.TxnDate + '. ' + e[2],\n    'Severity': e[1], 'Detected Date': now, 'Status': 'Open'\n  }}));\n}\nconst summary = { purchasesRead: all.length, inHoldingAccount: holding.length, alreadyInReviewQueue: alreadyLogged, newForReview: reviews.length, newWithFlags: reviews.filter(r => r.fields['Exception Flags'].length).length, exceptionRecords: exceptions.length };\nreturn [{ json: { reviews, exceptions, summary } }];\n"
+      },
+      "id": "91ec8b72-721d-4125-831f-c2037caead2e",
+      "name": "L1 Normalize, Flag & Keep New",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.reviews; const out = []; for (let i = 0; i < r.length; i += 10) out.push({ json: { payload: { records: r.slice(i, i + 10), typecast: true } } }); return out;"
+      },
+      "id": "2af64ebb-cfb7-4ff3-b87d-121eeb8eff44",
+      "name": "L1 Batch Review Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "b434ab30-8121-4113-a874-6297c8d240bd",
+      "name": "L1 Create Review Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.exceptions; const out = []; for (let i = 0; i < r.length; i += 10) out.push({ json: { payload: { records: r.slice(i, i + 10), typecast: true } } }); return out;"
+      },
+      "id": "c8919e42-d335-4451-a5a4-c5a8afba2b8b",
+      "name": "L1 Batch Exception Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblExceptions }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "16a77440-da06-4004-8db0-4536919f2b92",
+      "name": "L1 Create Exception Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json; const s = $input.first().json.summary;\nreturn [{ json: { payload: { typecast: true, records: [{ fields: { 'Event ID': 'RUN-' + $execution.id, 'Timestamp': new Date().toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'Intake Run', 'Status': 'Success', 'Details': JSON.stringify(s, null, 2) } }] } } }];\n"
+      },
+      "id": "193d2dcf-d5fc-4954-86c9-9fd3387618b5",
+      "name": "L1 Build Run Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "824fa8bf-2300-475c-a873-347fb0d70547",
+      "name": "L1 Write Run Log (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        384
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "OR({Review Status}='Approved',{Review Status}='Changed',{Review Status}='Synced')"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "requestInterval": 250
+            }
+          }
+        }
+      },
+      "id": "8fcbddd0-714c-42db-82a4-f42956516988",
+      "name": "L1b Get Approved History (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2016,
+        576
+      ],
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "{Review Status}='New'"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "requestInterval": 250
+            }
+          }
+        }
+      },
+      "id": "665c3925-4648-4a65-9620-b40fd4b9aa3d",
+      "name": "L1b Get New Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2240,
+        576
+      ],
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst acc = (($('L1b Get Expense Accounts (QuickBooks)').first().json.QueryResponse) || {}).Account || [];\nconst exclude = new Set(cfg.excludeAccountIds.map(String));\nconst allowed = {};\nacc.filter(a => a.Active && !exclude.has(String(a.Id))).forEach(a => { allowed[String(a.Id)] = a.FullyQualifiedName; });\nconst nameToId = {};\nObject.keys(allowed).forEach(id => { nameToId[allowed[id].toLowerCase()] = id; });\n// Vendor history = categories this firm's review process already approved for the vendor\nconst hist = {};\nfor (const page of $('L1b Get Approved History (Airtable)').all()) {\n  for (const r of (page.json.records || [])) {\n    const f = r.fields || {};\n    const vid = f['Vendor ID'];\n    if (!vid) continue;\n    const cid = f['Reviewer Category'] ? (nameToId[String(f['Reviewer Category']).toLowerCase()] || null) : (f['Suggested Category ID'] || null);\n    if (!cid) continue;\n    (hist[vid] = hist[vid] || []);\n    if (!hist[vid].includes(String(cid))) hist[vid].push(String(cid));\n  }\n}\nconst recs = [];\nfor (const page of $input.all()) for (const r of (page.json.records || [])) recs.push(r);\nconst list = recs.slice(0, cfg.maxItemsPerRun);\nconst catList = Object.keys(allowed).map(id => id + ' | ' + allowed[id]).join('\\n');\nconst system = [\n  'You are Jev, an AI assistant that helps a bookkeeping team categorize business expenses in QuickBooks Online. You only make recommendations; the firm\\'s rules and a person make the final decision.',\n  'Choose exactly ONE category from the ALLOWED CATEGORIES list and return its id. Never invent a category.',\n  'Confidence (0-100) must reflect how certain the category is from the information given:',\n  '- 95-100: vendor and description clearly and unambiguously point to one category.',\n  '- 80-94: likely, but another category could reasonably apply.',\n  '- below 80: unclear, generic or missing information (no vendor, no description, vague description, unfamiliar vendor).',\n  'Be conservative. Large or unusual amounts with vague descriptions deserve lower confidence. If a purchase may need to be recorded as a fixed asset instead of an expense, say so in concerns and lower confidence.',\n  'Never make accusations and never use the word fraud. Describe concerns neutrally, for example \"requires review\".',\n  'Reply with ONLY a JSON object and no other text, in this exact shape:',\n  '{\"categoryId\":\"<id>\",\"categoryName\":\"<name>\",\"confidence\":<integer 0-100>,\"reasoning\":\"<at most 2 short sentences>\",\"concerns\":[\"<short concern>\"]}'\n].join('\\n');\nreturn list.map(r => {\n  const f = r.fields || {};\n  const flags = f['Exception Flags'] || [];\n  const user = 'TRANSACTION (Fictional / Sample Data)\\n' +\n    'Vendor: ' + (f['Vendor'] || '(none recorded)') + '\\n' +\n    'Amount: $' + Number(f['Amount'] || 0).toFixed(2) + '\\n' +\n    'Date: ' + (f['Txn Date'] || '') + '\\n' +\n    'Description: ' + (f['Description'] || '(none recorded)') + '\\n' +\n    'Paid from: ' + (f['Payment Account'] || '') + '\\n' +\n    'Rule-based flags already raised: ' + (flags.length ? flags.join(', ') : 'none') + '\\n\\n' +\n    'ALLOWED CATEGORIES (id | name):\\n' + catList;\n  return { json: {\n    recId: r.id, qbId: f['QuickBooks ID'], vendor: f['Vendor'] || '', vendorId: f['Vendor ID'] || '',\n    amount: Number(f['Amount'] || 0), flags, history: hist[f['Vendor ID']] || [], allowed,\n    body: { model: cfg.model, temperature: 0, max_tokens: 400, messages: [ { role: 'system', content: system }, { role: 'user', content: user } ] }\n  } };\n});\n"
+      },
+      "id": "9bb6e027-0fab-44d0-9918-902cade43f68",
+      "name": "L1b Prepare Prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 300
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "c55ab663-9e91-443b-b387-84463313818f",
+      "name": "L1b Ask Jev (OpenRouter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2688,
+        576
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "OpenRouter API (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst prep = $('L1b Prepare Prompts').all();\nconst res = $input.all();\nconst BT = String.fromCharCode(96);\nconst now = new Date().toISOString();\nconst updates = [], exceptions = [], lines = [];\nconst counts = { autoApproved: 0, reviewRequired: 0, exception: 0, aiUnavailable: 0, lowConfidence: 0 };\nfor (let i = 0; i < prep.length; i++) {\n  const p = prep[i].json;\n  const r = (res[i] && res[i].json) || {};\n  let ai = null, aiErr = null;\n  try {\n    const c = r.choices[0].message.content;\n    const t = c.split(BT + BT + BT + 'json').join('').split(BT + BT + BT).join('').trim();\n    ai = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));\n  } catch (e) {\n    aiErr = r.error ? (typeof r.error === 'string' ? r.error : (r.error.message || 'AI request failed')) : 'AI response missing or unreadable';\n  }\n  if (ai) {\n    const id = String(ai.categoryId);\n    const conf = Number(ai.confidence);\n    if (!p.allowed[id]) { aiErr = 'AI suggested a category that is not in the allowed list (' + id + ')'; ai = null; }\n    else if (!Number.isFinite(conf) || conf < 0 || conf > 100) { aiErr = 'AI returned an invalid confidence value'; ai = null; }\n    else { ai.categoryId = id; ai.categoryName = p.allowed[id]; ai.confidence = Math.round(conf); }\n  }\n  const f = {};\n  let decision, status, rule;\n  if (!ai) {\n    counts.aiUnavailable++;\n    decision = 'Review Required'; status = 'Pending Review';\n    rule = 'AI unavailable - routed to human review. Reason: ' + String(aiErr).slice(0, 200);\n    f['AI Reasoning'] = 'No AI recommendation. ' + String(aiErr).slice(0, 300);\n  } else {\n    const gConf = ai.confidence >= cfg.autoApproveMinConfidence;\n    const gHist = p.history.includes(ai.categoryId);\n    const gAmt = p.amount < cfg.autoApproveMaxAmount;\n    const gFlags = p.flags.length === 0;\n    rule = 'Confidence ' + ai.confidence + ' (min ' + cfg.autoApproveMinConfidence + '): ' + (gConf ? 'pass' : 'fail') +\n      ' | Vendor previously approved with this category: ' + (gHist ? 'pass' : 'fail') +\n      ' | Amount under $' + cfg.autoApproveMaxAmount + ': ' + (gAmt ? 'pass' : 'fail') +\n      ' | No exception flags: ' + (gFlags ? 'pass' : 'fail');\n    if (!gFlags) { decision = 'Exception'; counts.exception++; }\n    else if (gConf && gHist && gAmt) { decision = 'Auto-Approved'; counts.autoApproved++; }\n    else { decision = 'Review Required'; counts.reviewRequired++; }\n    status = decision === 'Auto-Approved' ? 'Approved' : 'Pending Review';\n    rule += ' => ' + decision;\n    f['Suggested Category'] = ai.categoryName;\n    f['Suggested Category ID'] = ai.categoryId;\n    f['Confidence'] = ai.confidence;\n    const concerns = Array.isArray(ai.concerns) ? ai.concerns.filter(Boolean) : [];\n    f['AI Reasoning'] = String(ai.reasoning || '').slice(0, 600) + (concerns.length ? ' Concerns: ' + concerns.join('; ').slice(0, 400) : '');\n    if (decision === 'Auto-Approved') f['Reviewer'] = 'System rule (auto-approval gate)';\n    if (ai.confidence < cfg.reviewThreshold) {\n      counts.lowConfidence++;\n      exceptions.push({ fields: { 'Exception Key': 'LOWCONF-QB-' + p.qbId, 'Type': 'Low Confidence', 'QuickBooks ID': String(p.qbId), 'Related IDs': '',\n        'Description': (p.vendor || '(no vendor)') + ' | $' + p.amount.toFixed(2) + '. AI confidence ' + ai.confidence + ' is below ' + cfg.reviewThreshold + '. Manual review required.',\n        'Severity': 'Medium', 'Detected Date': now, 'Status': 'Open' } });\n    }\n  }\n  f['Decision'] = decision; f['Review Status'] = status; f['Rule Applied'] = rule;\n  updates.push({ id: p.recId, fields: f });\n  lines.push('QB-' + p.qbId + ': ' + (ai ? ai.categoryName + ' (' + ai.confidence + ')' : 'no AI') + ' -> ' + decision);\n}\nconst summary = { model: cfg.model, processed: prep.length, counts, items: lines };\nreturn [{ json: { updates, exceptions, summary } }];\n"
+      },
+      "id": "1356e2b2-f1f0-4c31-83ec-29003bdd5e32",
+      "name": "L1b Apply Decision Rules",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.updates; const out = []; for (let i = 0; i < r.length; i += 10) out.push({ json: { payload: { records: r.slice(i, i + 10), typecast: true } } }); return out;"
+      },
+      "id": "9348e374-cc4a-4c09-870f-d7391e68c50f",
+      "name": "L1b Batch Review Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "1f31e560-5bb8-4637-9082-07539e73e2df",
+      "name": "L1b Update Review Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3360,
+        192
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.exceptions; const out = []; for (let i = 0; i < r.length; i += 10) out.push({ json: { payload: { records: r.slice(i, i + 10), typecast: true } } }); return out;"
+      },
+      "id": "c4d47100-5893-4a84-96cf-ed1d4ac70057",
+      "name": "L1b Batch Low-Confidence Exceptions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        384
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblExceptions }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "4271b34e-69e9-45db-b906-bcb79ff00f8b",
+      "name": "L1b Create Exception Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3360,
+        384
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json; const s = $input.first().json.summary;\nreturn [{ json: { payload: { typecast: true, records: [{ fields: { 'Event ID': 'AI-' + $execution.id, 'Timestamp': new Date().toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'AI Review', 'Status': s.counts.aiUnavailable ? 'Partial' : 'Success', 'Details': JSON.stringify(s, null, 2).slice(0, 90000) } }] } } }];\n"
+      },
+      "id": "203566c2-e400-49aa-b519-ca83f82cf265",
+      "name": "L1b Build AI Run Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "12acf3c5-e243-41ea-baa3-e16a5131d81e",
+      "name": "L1b Write AI Run Log (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3360,
+        576
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst s = $input.first().json.summary;\nif (!s.counts.aiUnavailable) return [];\nconst failed = s.items.filter(x => x.indexOf('no AI') !== -1).join('\\n');\nreturn [{ json: { alertEmail: cfg.alertEmail, subject: '[QBAI ALERT] Jev unavailable for ' + s.counts.aiUnavailable + ' of ' + s.processed + ' items', body: 'Jev (AI) could not review ' + s.counts.aiUnavailable + ' of ' + s.processed + ' items in execution ' + $execution.id + '.\\nThese items were routed to human review in Airtable (Review Status = Pending Review, Rule Applied starts with \"AI unavailable\").\\n\\nItems:\\n' + failed + '\\n\\nCheck: OpenRouter key and credit limit, model name in Config, OpenRouter status. No QuickBooks data was changed.' } }];\n"
+      },
+      "id": "87c5a50f-f5ee-4e08-a10f-f166bb189f2a",
+      "name": "L1b Alert If Jev Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.alertEmail }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f9cc6b2c-8517-4b34-8de2-e36ec7ac21aa",
+      "name": "Send Alert Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3360,
+        1152
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "OR({Review Status}='Approved',{Review Status}='Changed')"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "requestInterval": 250
+            }
+          }
+        }
+      },
+      "id": "9b81a932-0f6f-4cc6-92a2-17828f136ba8",
+      "name": "L2 Get Approved Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        1248
+      ],
+      "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst acc = (($('L2 Get Expense Accounts (QuickBooks)').first().json.QueryResponse) || {}).Account || [];\nconst allowed = {};\nacc.filter(a => a.Active && !cfg.excludeAccountIds.includes(String(a.Id))).forEach(a => { allowed[String(a.Id)] = a.FullyQualifiedName; });\nconst nameToId = {};\nObject.keys(allowed).forEach(id => { nameToId[allowed[id].toLowerCase()] = id; });\nconst recs = [];\nfor (const page of $input.all()) for (const r of (page.json.records || [])) recs.push(r);\nreturn recs.slice(0, cfg.maxItemsPerRun).map(r => {\n  const f = r.fields || {};\n  const status = f['Review Status'];\n  let targetId = null, reason = null;\n  const revCat = f['Reviewer Category'] ? String(f['Reviewer Category']) : '';\n  if (!f['QuickBooks ID']) reason = 'Missing QuickBooks ID on the review record.';\n  else if (status === 'Changed') {\n    if (!revCat) reason = 'Review Status is Changed but Reviewer Category is empty. Pick a category or set Approved.';\n    else { targetId = nameToId[revCat.toLowerCase()] || null; if (!targetId) reason = 'Reviewer Category \"' + revCat + '\" is not an active QuickBooks expense account.'; }\n  } else if (status === 'Approved') {\n    if (revCat) reason = 'Reviewer Category is filled but Review Status is Approved. Set Changed to use your category, or clear Reviewer Category to use the AI suggestion.';\n    else if (!f['Suggested Category ID']) reason = 'Approved but there is no AI suggestion. Pick a Reviewer Category and set Changed.';\n    else { targetId = String(f['Suggested Category ID']); if (!allowed[targetId]) reason = 'Suggested category is no longer an active QuickBooks expense account.'; }\n  } else reason = 'Unexpected Review Status: ' + status;\n  return { json: {\n    recId: r.id, qbId: String(f['QuickBooks ID'] || ''), status, decision: f['Decision'] || '', reviewer: f['Reviewer'] || '',\n    notes: f['Reviewer Notes'] || '', amount: Number(f['Amount'] || 0), targetId, targetName: targetId ? allowed[targetId] : null,\n    valid: !reason, reason, holdingId: String(cfg.holdingAccountId), qbBase: cfg.qbBase\n  } };\n});\n"
+      },
+      "id": "fcd7e261-a985-44ad-8cba-65049663dcdf",
+      "name": "L2 Plan Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.valid }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7b4da833-7f73-483d-a1fa-e4591de8a576",
+      "name": "L2 Valid Decision?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.qbBase }}/purchase/{{ $json.qbId }}?minorversion=75",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 300
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "6d508aca-dc88-4af4-bb6f-2a6fc7ca748d",
+      "name": "L2 Get Expense (QuickBooks)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1792,
+        1104
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "",
+          "name": "QuickBooks Online OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const p = $('L2 Plan Updates').item.json;\nconst r = $json.Purchase || {};\nconst lines = r.Line || [];\nconst H = p.holdingId;\nconst isHold = l => l.DetailType === 'AccountBasedExpenseLineDetail' && l.AccountBasedExpenseLineDetail && String(l.AccountBasedExpenseLineDetail.AccountRef.value) === H;\nlet reason = null;\nif (!r.Id) reason = 'QuickBooks did not return the expense.';\nelse if (r.Credit === true) reason = 'This is a credit, not an expense. Update manually in QuickBooks.';\nelse if (!lines.some(isHold)) reason = 'Expense is no longer in the holding account in QuickBooks (already categorized by someone?). No change made.';\nelse if (lines.length > 1) reason = 'Expense has ' + lines.length + ' lines. Multi-line expenses are updated manually in QuickBooks.';\nelse if (Number(r.TotalAmt).toFixed(2) !== Number(p.amount).toFixed(2)) reason = 'Amount changed in QuickBooks since review ($' + Number(p.amount).toFixed(2) + ' reviewed, $' + Number(r.TotalAmt).toFixed(2) + ' now). Re-review required.';\nif (reason) return { json: { safe: false, reason } };\nconst newLines = lines.map(l => {\n  const c = JSON.parse(JSON.stringify(l));\n  delete c.CustomExtensions;\n  if (isHold(c)) c.AccountBasedExpenseLineDetail.AccountRef = { value: p.targetId };\n  return c;\n});\nconst body = { Id: r.Id, SyncToken: r.SyncToken, sparse: true, PaymentType: r.PaymentType, AccountRef: { value: r.AccountRef.value }, Line: newLines };\nreturn { json: { safe: true, oldSyncToken: r.SyncToken, oldCategory: 'Uncategorized Expense', body } };\n"
+      },
+      "id": "73e518a7-c53c-47ef-9c4e-e25f1038784b",
+      "name": "L2 Check & Build Update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.safe }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9280f22e-c5cd-4e97-aacd-330f4c671eed",
+      "name": "L2 Safe to Update?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2240,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.qbBase }}/purchase?minorversion=75",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 300
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "44e09556-0e5d-4c6f-9f06-f03d3ff42cf5",
+      "name": "L2 Update Expense Category (QuickBooks)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2464,
+        1056
+      ],
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "",
+          "name": "QuickBooks Online OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const p = $('L2 Plan Updates').item.json;\nconst b = $('L2 Check & Build Update').item.json;\nconst r = $json.Purchase || {};\nconst now = new Date().toISOString();\nconst newCat = (r.Line && r.Line[0] && r.Line[0].AccountBasedExpenseLineDetail) ? r.Line[0].AccountBasedExpenseLineDetail.AccountRef.name : p.targetName;\nreturn { json: { ok: true, recId: p.recId, qbId: p.qbId,\n  fields: { 'Review Status': 'Synced', 'Synced At': now, 'Sync Token': String(r.SyncToken), 'Current Category': newCat },\n  audit: { 'Event ID': 'QBU-' + p.qbId + '-' + $execution.id, 'Timestamp': now, 'Workflow': $('Config').first().json.workflowName, 'Event Type': 'QuickBooks Update', 'Status': 'Success', 'QuickBooks ID': p.qbId,\n    'Details': 'Expense QB-' + p.qbId + ' re-categorized: ' + b.oldCategory + ' -> ' + newCat + ' (account ' + p.targetId + '). Basis: ' + p.status + ' by ' + (p.reviewer || 'unknown') + (p.decision ? ' (Decision: ' + p.decision + ')' : '') + '. SyncToken ' + b.oldSyncToken + ' -> ' + r.SyncToken + '.' } } };\n"
+      },
+      "id": "d5fe36d4-4e9a-4880-b27a-a9eabce995de",
+      "name": "L2 Result: Synced",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const p = $('L2 Plan Updates').item.json;\nconst e = $json.error;\nlet reason = $json.reason || (e ? ((e.message || '') + (e.description ? ' - ' + e.description : '')) : 'Unknown error');\nreason = String(reason).split(',\"isAxiosError\"')[0].split('\"headers\"')[0].replace(/Bearer\\s+[A-Za-z0-9._\\-]+/g, 'Bearer [redacted]').slice(0, 500);\nconst now = new Date().toISOString();\nconst stamp = now.slice(0, 16).replace('T', ' ');\nreturn { json: { ok: false, recId: p.recId, qbId: p.qbId, reason,\n  fields: { 'Review Status': 'Sync Failed', 'Reviewer Notes': (p.notes ? p.notes + '\\n' : '') + '[Sync failed ' + stamp + ' UTC] ' + reason },\n  audit: { 'Event ID': 'QBU-' + p.qbId + '-' + $execution.id, 'Timestamp': now, 'Workflow': $('Config').first().json.workflowName, 'Event Type': 'QuickBooks Update', 'Status': 'Failed', 'QuickBooks ID': p.qbId,\n    'Details': 'Expense QB-' + p.qbId + ' NOT updated. Reason: ' + reason + ' Basis: ' + p.status + ' by ' + (p.reviewer || 'unknown') + '.' } } };\n"
+      },
+      "id": "37f471c4-90b1-41e6-b087-3686d41e55bd",
+      "name": "L2 Result: Not Updated",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json);\nconst out = [];\nfor (let i = 0; i < items.length; i += 10) {\n  const chunk = items.slice(i, i + 10);\n  out.push({ json: {\n    reviewPayload: { typecast: true, records: chunk.map(x => ({ id: x.recId, fields: x.fields })) },\n    auditPayload: { typecast: true, records: chunk.map(x => ({ fields: x.audit })) },\n    failures: chunk.filter(x => !x.ok).map(x => 'QB-' + x.qbId + ': ' + x.reason),\n    synced: chunk.filter(x => x.ok).map(x => 'QB-' + x.qbId)\n  } });\n}\nreturn out;\n"
+      },
+      "id": "f4df1889-76ee-466a-8c79-c332d6763b82",
+      "name": "L2 Batch Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        1248
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.reviewPayload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "fe236c76-c375-4bf5-993a-bce9b66025e4",
+      "name": "L2 Update Review Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3136,
+        960
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.auditPayload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "fa16a6d3-4fc5-4ded-ab71-c14e452b445c",
+      "name": "L2 Write Audit Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3136,
+        1152
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst f = $input.all().flatMap(i => i.json.failures || []);\nif (!f.length) return [];\nreturn [{ json: { alertEmail: cfg.alertEmail, subject: '[QBAI ALERT] ' + f.length + ' approved item(s) could not be updated in QuickBooks', body: 'The approval sync could not update these expenses in QuickBooks (execution ' + $execution.id + '):\\n\\n' + f.join('\\n') + '\\n\\nThey are marked \"Sync Failed\" in Airtable (view: 2. Approved - waiting for QuickBooks) with the reason in Reviewer Notes. Fix the cause, then set Review Status back to Approved or Changed. They will be retried on the next run.' } }];\n"
+      },
+      "id": "c3336699-0230-4b64-b3e8-b9ae4546ae50",
+      "name": "L2 Alert If Items Not Updated",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst stage = cfg.laneLabel;\nconst msgs = $input.all().map(i => { const e = i.json.error || i.json; let m = (e.message || '') + (e.description ? ' - ' + e.description : '') + (e.httpCode ? ' (HTTP ' + e.httpCode + ')' : ''); if (!m) m = JSON.stringify(e); m = m.split(',\"isAxiosError\"')[0].split('\"headers\"')[0]; return m.slice(0, 600); });\nconst clean = msgs.join('\\n').replace(/Bearer\\s+[A-Za-z0-9._\\-]+/g, 'Bearer [redacted]').replace(/(token|secret|key)=[^&\\s]+/gi, '$1=[redacted]').replace(/set-cookie[^\\n]*/gi, '[redacted]').slice(0, 2000);\nconst subject = '[QBAI ALERT] ' + stage + ' - a step failed';\nconst body = 'Lane: ' + stage + '\\nWorkflow: ' + cfg.workflowName + '\\nExecution ID: ' + $execution.id + '\\nTime (UTC): ' + new Date().toISOString() + '\\nFailed items: ' + $input.all().length + '\\n\\nError:\\n' + clean + '\\n\\nWhat happens next: QuickBooks remains the source of truth. Items that were not processed keep their status and are picked up on the next run; the approval sync re-checks each expense before changing it, so nothing is updated twice. Check this execution in n8n, fix the cause, then re-run the lane.';\nreturn [{ json: { subject, body, alertEmail: cfg.alertEmail, payload: { typecast: true, records: [{ fields: { 'Event ID': 'ERR-' + $execution.id + '-' + cfg.lane, 'Timestamp': new Date().toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'Error', 'Status': 'Failed', 'Details': body } }] } } }];\n"
+      },
+      "id": "88b2a93c-e9c8-4065-a560-82c517ac43fe",
+      "name": "Build Error Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        1536
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "aafd3cf6-f961-4188-9ce0-d7dad36b47f5",
+      "name": "Log Error (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3360,
+        1584
+      ],
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "ecf4a158-e48b-40bf-8120-a6ef495b649b",
+      "name": "L4 Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        1520
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lane 4: runs only when a LIVE (scheduled) execution of this workflow crashes unexpectedly.\nconst e = $json.execution || {};\nconst err = e.error || {};\nlet msg = String((err.message || '') + (err.description ? ' - ' + err.description : '')).split(',\"isAxiosError\"')[0].split('\"headers\"')[0];\nmsg = msg.replace(/Bearer\\s+[A-Za-z0-9._\\-]+/g, 'Bearer [redacted]').slice(0, 1500);\nreturn [{ json: { alertEmail: 'alerts@example.com', subject: '[QBAI ALERT] Workflow crashed - ' + (($json.workflow || {}).name || 'QBAI'), body: 'An unexpected error stopped a live run.\\n\\nWorkflow: ' + (($json.workflow || {}).name || '') + '\\nExecution ID: ' + (e.id || '') + '\\nLast node: ' + (e.lastNodeExecuted || '') + '\\nMode: ' + (e.mode || '') + '\\n\\nError:\\n' + msg + '\\n\\nQuickBooks remains the source of truth; unprocessed items are retried on the next scheduled run. Open the execution in n8n to investigate.' } }];\n"
+      },
+      "id": "88f5d0a0-780a-45f9-a531-47a0b70c546d",
+      "name": "L4 Build Crash Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        1520
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.alertEmail }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "01c95f4c-c62f-4c8e-b140-361f57314cb4",
+      "name": "L4 Send Crash Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        432,
+        1520
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9,14 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "da1a17b5-fdbb-42ca-ab22-7a6d85403538",
+      "name": "L3 Receipts Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        2608
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { lane: 'receipts' } }];"
+      },
+      "id": "78f24048-e234-4a2b-82fb-9266a30b565d",
+      "name": "L3 Start",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        2608
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "='{{ $json.receiptsFolderId }}' in parents and trashed = false"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,webViewLink)"
+            },
+            {
+              "name": "pageSize",
+              "value": "1000"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "70e03cd8-c4c7-4577-a2b2-ec520375f8e6",
+      "name": "L3 List Receipt Files (Drive)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        704,
+        2608
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "",
+          "name": "Google Drive OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "AND({Review Status}!='Rejected',{Receipt Status}!='Found',{Receipt Status}!='Not Required')"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "requestInterval": 250
+            }
+          }
+        }
+      },
+      "id": "9f04dbcb-8866-4065-8147-b4649d6d5d25",
+      "name": "L3 Get Receipt Candidates (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        2608
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblDocReq }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "requestInterval": 250
+            }
+          }
+        }
+      },
+      "id": "50052cd7-fea1-4999-8038-adafc97cf22e",
+      "name": "L3 Get Document Requests (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1152,
+        2608
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst files = ($('L3 List Receipt Files (Drive)').first().json.files) || [];\nconst reviews = [];\nfor (const p of $('L3 Get Receipt Candidates (Airtable)').all()) for (const r of (p.json.records || [])) reviews.push(r);\nconst reqs = [];\nfor (const p of $input.all()) for (const r of (p.json.records || [])) reqs.push(r);\nconst findFile = qb => files.find(f => new RegExp('(^|[^0-9A-Za-z])QB-' + qb + '(?![0-9])', 'i').test(f.name || ''));\nconst reqByQb = {};\nreqs.forEach(r => { const q = String((r.fields || {})['QuickBooks ID'] || ''); if (q) reqByQb[q] = r; });\nconst nowIso = new Date().toISOString();\nconst today = nowIso.slice(0, 10);\nconst note = (old, txt) => (old ? old + '\\n' : '') + '[' + today + '] ' + txt;\nconst reviewUpdates = [], newRequests = [], requestUpdates = [], toSend = [], received = [], escalated = [];\nconst counts = { candidates: reviews.length, notRequired: 0, found: 0, missing: 0, newRequests: 0, toSend: 0, received: 0, escalated: 0, blocked: 0 };\n// 1. Transaction Review: decide receipt status\nfor (const r of reviews) {\n  const f = r.fields || {};\n  const qb = String(f['QuickBooks ID'] || '');\n  if (!qb) continue;\n  const amt = Number(f['Amount'] || 0);\n  if (amt < cfg.receiptThreshold) { reviewUpdates.push({ id: r.id, fields: { 'Receipt Status': 'Not Required' } }); counts.notRequired++; continue; }\n  const file = findFile(qb);\n  if (file) { reviewUpdates.push({ id: r.id, fields: { 'Receipt Status': 'Found', 'Receipt URL': file.webViewLink || '' } }); counts.found++; continue; }\n  counts.missing++;\n  if (f['Receipt Status'] !== 'Missing') reviewUpdates.push({ id: r.id, fields: { 'Receipt Status': 'Missing' } });\n  if (!reqByQb[qb]) { newRequests.push({ qbId: qb, vendor: f['Vendor'] || '', amount: amt, txnDate: f['Txn Date'] || '', description: f['Description'] || '' }); counts.newRequests++; }\n}\n// 2. Document Requests: received, send approved, escalate overdue\nconst open = ['Pending Approval', 'Approved to Send', 'Requested', 'Waiting for Client', 'Escalated', 'Send Failed'];\nfor (const r of reqs) {\n  const f = r.fields || {};\n  const qb = String(f['QuickBooks ID'] || '');\n  const st = f['Status'];\n  if (!open.includes(st)) continue;\n  const file = findFile(qb);\n  if (file) {\n    requestUpdates.push({ id: r.id, fields: { 'Status': 'Received', 'Received Date': nowIso, 'Document URL': file.webViewLink || '', 'Notes': note(f['Notes'], 'Receipt found in Drive: ' + file.name + '. Check it, then set Status to Verified.') } });\n    received.push('QB-' + qb + ' ' + (f['Vendor'] || '(no vendor)') + ' $' + Number(f['Amount'] || 0).toFixed(2)); counts.received++;\n    continue;\n  }\n  if (st === 'Approved to Send') {\n    if (!f['Draft Subject'] || !f['Draft Body']) {\n      requestUpdates.push({ id: r.id, fields: { 'Status': 'Pending Approval', 'Notes': note(f['Notes'], 'Not sent: Draft Subject or Draft Body is empty.') } }); counts.blocked++;\n    } else {\n      const to = cfg.testMode ? cfg.testRecipient : (f['Recipient Email'] || cfg.clientContactEmail);\n      toSend.push({ recId: r.id, qbId: qb, to, subject: (cfg.testMode ? '[FICTIONAL TEST] ' : '') + f['Draft Subject'], body: f['Draft Body'], reviewer: f['Reviewer'] || '', notes: f['Notes'] || '' });\n      counts.toSend++;\n    }\n    continue;\n  }\n  if ((st === 'Requested' || st === 'Waiting for Client') && f['Follow-up Date'] && f['Follow-up Date'] < today) {\n    requestUpdates.push({ id: r.id, fields: { 'Status': 'Escalated', 'Notes': note(f['Notes'], 'No receipt by follow-up date ' + f['Follow-up Date'] + '. Escalated for a person to decide the next step.') } });\n    escalated.push('QB-' + qb + ' ' + (f['Vendor'] || '(no vendor)') + ' $' + Number(f['Amount'] || 0).toFixed(2) + ' (follow-up was ' + f['Follow-up Date'] + ')'); counts.escalated++;\n  }\n}\nreturn [{ json: { reviewUpdates, newRequests, requestUpdates, toSend, received, escalated, summary: { receiptThreshold: cfg.receiptThreshold, filesInFolder: files.length, counts } } }];\n"
+      },
+      "id": "5eab459a-ffcd-4856-8b47-66881cfe5e5c",
+      "name": "L3 Plan Receipt Actions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        2608
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.reviewUpdates; const out = []; for (let i = 0; i < r.length; i += 10) out.push({ json: { payload: { records: r.slice(i, i + 10), typecast: true } } }); return out;"
+      },
+      "id": "c6be5b8c-a56c-43d1-9ff0-f512e7e1d443",
+      "name": "L3 Batch Review Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2304
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "d5e17b90-4ef3-47fd-bbea-9f9e2f4090c6",
+      "name": "L3 Update Review Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        2304
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.requestUpdates; const out = []; for (let i = 0; i < r.length; i += 10) out.push({ json: { payload: { records: r.slice(i, i + 10), typecast: true } } }); return out;"
+      },
+      "id": "db42bf0f-792d-4ef8-a586-3e9fa968b72b",
+      "name": "L3 Batch Request Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2464
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblDocReq }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "0ac32992-d63f-426b-9d1a-4f9868957438",
+      "name": "L3 Update Document Requests (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        2464
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst list = $input.first().json.newRequests.slice(0, cfg.maxItemsPerRun);\nconst system = [\n  'You are Jev, an assistant to a bookkeeping team. Draft a short, polite, professional email asking a client for a missing receipt for one expense.',\n  'Plain text only, no markdown. At most 110 words in the body. Mention vendor, amount and date. Ask them to reply to this email with the receipt or invoice attached. Do not mention portals, uploads or accounts. Do not invent facts, deadlines or policies. Do not mention AI. Neutral tone, never imply wrongdoing.',\n  'Sign off exactly as: ' + cfg.senderName,\n  'Reply with ONLY a JSON object: {\"subject\":\"<subject>\",\"body\":\"<body with \\\\n line breaks>\"}'\n].join('\\n');\nreturn list.map(r => ({ json: { ...r, body: { model: cfg.model, temperature: 0.2, max_tokens: 400, messages: [\n  { role: 'system', content: system },\n  { role: 'user', content: 'Client: ' + cfg.clientName + '\\nVendor: ' + (r.vendor || '(vendor not recorded)') + '\\nAmount: $' + r.amount.toFixed(2) + '\\nTransaction date: ' + r.txnDate + '\\nDescription on record: ' + (r.description || '(none)') + '\\nDocument needed: receipt or invoice\\n(Fictional / Sample Data)' }\n] } } }));\n"
+      },
+      "id": "d8c01ff1-137c-4399-9b66-706582b18986",
+      "name": "L3 Prepare Draft Requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2640
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 300
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "d2194fa2-872d-46a5-9cba-017876c47c1e",
+      "name": "L3 Ask Jev for Draft (OpenRouter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        2640
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "OpenRouter API (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst prep = $('L3 Prepare Draft Requests').all();\nconst res = $input.all();\nconst BT = String.fromCharCode(96);\nconst today = new Date().toISOString().slice(0, 10);\nconst records = [];\nlet aiFailed = 0;\nfor (let i = 0; i < prep.length; i++) {\n  const p = prep[i].json;\n  const r = (res[i] && res[i].json) || {};\n  let d = null;\n  try {\n    const t = r.choices[0].message.content.split(BT + BT + BT + 'json').join('').split(BT + BT + BT).join('').trim();\n    d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));\n    if (!d.subject || !d.body) d = null;\n  } catch (e) { d = null; }\n  let source = 'Jev';\n  if (!d) {\n    aiFailed++; source = 'Template (AI unavailable)';\n    d = { subject: 'Receipt needed: ' + (p.vendor || 'expense') + ' $' + p.amount.toFixed(2) + ' (' + p.txnDate + ')',\n      body: 'Hello,\\n\\nWe are completing your books and need the receipt for this expense:\\n\\nVendor: ' + (p.vendor || 'not recorded') + '\\nAmount: $' + p.amount.toFixed(2) + '\\nDate: ' + p.txnDate + '\\n\\nCould you reply to this email with the receipt or invoice? Thank you.\\n\\n' + cfg.senderName };\n  }\n  records.push({ fields: {\n    'Request Key': 'DOCREQ-QB-' + p.qbId, 'QuickBooks ID': p.qbId, 'Vendor': p.vendor, 'Amount': p.amount, 'Txn Date': p.txnDate || null,\n    'Description': p.description, 'Document Type': 'Receipt', 'Status': 'Pending Approval', 'Recipient Email': cfg.clientContactEmail,\n    'Draft Subject': String(d.subject).slice(0, 200), 'Draft Body': String(d.body).slice(0, 3000), 'Draft Source': source,\n    'Notes': '[' + today + '] Receipt missing (amount at or above the $' + cfg.receiptThreshold + ' threshold). Review the draft, edit if needed, fill in Reviewer, then set Status to Approved to Send (or Cancelled).'\n  } });\n}\nconst out = [];\nfor (let i = 0; i < records.length; i += 10) out.push({ json: { payload: { typecast: true, records: records.slice(i, i + 10) }, aiFailed } });\nreturn out;\n"
+      },
+      "id": "627677f7-bd74-40c5-97b5-aa9fbf4a1b4c",
+      "name": "L3 Build Request Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        2640
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblDocReq }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "436f9eb9-ee78-4bc3-99d6-3a6a990bccba",
+      "name": "L3 Create Document Requests (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2272,
+        2640
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first().json.toSend.map(x => ({ json: x }));\n"
+      },
+      "id": "3584ce7b-e364-465d-9cb2-f5fb0dc15015",
+      "name": "L3 Emails to Send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2832
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "557995df-def7-41dd-9d63-28b98bbb1d10",
+      "name": "L3 Send Request Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1824,
+        2832
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const p = $('L3 Emails to Send').item.json;\nconst cfg = $('Config').first().json;\nconst now = new Date();\nconst fu = new Date(now.getTime() + cfg.followUpDays * 86400000).toISOString().slice(0, 10);\nconst today = now.toISOString().slice(0, 10);\nreturn { json: { recId: p.recId, ok: true,\n  fields: { 'Status': 'Requested', 'Request Date': now.toISOString(), 'Follow-up Date': fu, 'Notes': (p.notes ? p.notes + '\\n' : '') + '[' + today + '] Request emailed to ' + p.to + '. Follow-up date ' + fu + '.' },\n  audit: { 'Event ID': 'DOC-' + p.qbId + '-' + $execution.id, 'Timestamp': now.toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'Document Request', 'Status': 'Success', 'QuickBooks ID': p.qbId, 'Details': 'Receipt request for QB-' + p.qbId + ' emailed to ' + p.to + ' after approval by ' + (p.reviewer || 'unknown') + '. Subject: ' + p.subject } } };\n"
+      },
+      "id": "fa3803b0-ca58-4e13-bcd7-670c2dcf2bd4",
+      "name": "L3 Mark Sent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        2784
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const p = $('L3 Emails to Send').item.json;\nconst cfg = $('Config').first().json;\nconst e = $json.error || {};\nconst reason = String((e.message || 'Email send failed') + (e.description ? ' - ' + e.description : '')).split(',\"isAxiosError\"')[0].slice(0, 300);\nconst now = new Date().toISOString();\nreturn { json: { recId: p.recId, ok: false, reason: 'QB-' + p.qbId + ': ' + reason,\n  fields: { 'Status': 'Send Failed', 'Notes': (p.notes ? p.notes + '\\n' : '') + '[' + now.slice(0, 10) + '] Email NOT sent (retried 3 times): ' + reason + ' Set Status back to Approved to Send to retry.' },\n  audit: { 'Event ID': 'DOC-' + p.qbId + '-' + $execution.id, 'Timestamp': now, 'Workflow': cfg.workflowName, 'Event Type': 'Document Request', 'Status': 'Failed', 'QuickBooks ID': p.qbId, 'Details': 'Receipt request for QB-' + p.qbId + ' could not be emailed: ' + reason } } };\n"
+      },
+      "id": "7b25d2cd-64a8-46f6-9293-48677c31be14",
+      "name": "L3 Mark Send Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        2928
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json);\nconst out = [];\nfor (let i = 0; i < items.length; i += 10) {\n  const c = items.slice(i, i + 10);\n  out.push({ json: { reqPayload: { typecast: true, records: c.map(x => ({ id: x.recId, fields: x.fields })) }, auditPayload: { typecast: true, records: c.map(x => ({ fields: x.audit })) }, failures: c.filter(x => !x.ok).map(x => x.reason) } });\n}\nreturn out;\n"
+      },
+      "id": "fa432632-7a0b-4379-a1b7-d26f72f4499e",
+      "name": "L3 Batch Sent Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        2832
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblDocReq }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.reqPayload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "2548c35b-de87-44b0-a7ed-e03f459893f3",
+      "name": "L3 Update Sent Requests (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2480,
+        2768
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.auditPayload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "200d76c8-397c-4c7e-bf60-e31d6e38a029",
+      "name": "L3 Write Request Audit (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2480,
+        2912
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst f = $input.all().flatMap(i => i.json.failures || []);\nif (!f.length) return [];\nreturn [{ json: { alertEmail: cfg.alertEmail, subject: '[QBAI ALERT] ' + f.length + ' document request email(s) could not be sent', body: 'These approved receipt requests could not be emailed (execution ' + $execution.id + '):\\n\\n' + f.join('\\n') + '\\n\\nThey are marked \"Send Failed\" in Airtable (Document Requests). Fix the cause, then set Status back to Approved to Send.' } }];\n"
+      },
+      "id": "5e3c0816-534c-45c6-b69b-310add408507",
+      "name": "L3 Alert If Send Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        3040
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst j = $input.first().json;\nconst s = j.summary;\nconst log = { payload: { typecast: true, records: [{ fields: { 'Event ID': 'RCPT-' + $execution.id, 'Timestamp': new Date().toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'Receipt Check', 'Status': 'Success', 'Details': JSON.stringify(s, null, 2) } }] } };\nconst out = [{ json: { kind: 'log', ...log } }];\nreturn out;\n"
+      },
+      "id": "dadaedcc-70d2-4442-bb22-153f1a18aea7",
+      "name": "L3 Build Receipt Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        3088
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "5fbc6930-e999-42c0-94c3-c2773aef2185",
+      "name": "L3 Write Receipt Log (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        3088
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst j = $input.first().json;\nconst c = j.summary.counts;\nif (!c.newRequests && !c.received && !c.escalated && !c.blocked) return [];\nconst parts = [];\nif (c.newRequests) parts.push(c.newRequests + ' new receipt request draft(s) are waiting for approval in Airtable (Document Requests, Status = Pending Approval).');\nif (j.received.length) parts.push('Receipts received - please check and set Status to Verified:\\n' + j.received.join('\\n'));\nif (j.escalated.length) parts.push('Escalated - no receipt by the follow-up date. Decide the next step (call the client, send a reminder, or cancel):\\n' + j.escalated.join('\\n'));\nif (c.blocked) parts.push(c.blocked + ' approved request(s) could not be sent because the subject or body was empty (moved back to Pending Approval).');\nreturn [{ json: { alertEmail: cfg.alertEmail, subject: '[QBAI] Receipts: ' + c.newRequests + ' to approve, ' + c.received + ' received, ' + c.escalated + ' escalated', body: parts.join('\\n\\n') + '\\n\\n(Fictional / Sample Data - QuickBooks AI Operations Assistant)' } }];\n"
+      },
+      "id": "7131b237-ba65-4475-ba4f-790a4d01628c",
+      "name": "L3 Attention Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        3248
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## LANE 3 - Receipt Check & Document Requests\nWeekdays 9:00 and 14:00. Expenses at or above the receipt threshold ($100) are matched to files in the Drive receipts folder (file name must contain QB-<id>). Missing -> Jev drafts a request -> a person approves in Airtable (Status = Approved to Send) -> Gmail sends -> follow-up date set. File appears later -> Received (person sets Verified). No receipt by follow-up date -> Escalated + email to the team. TEST MODE sends all emails to the test recipient.",
+        "height": 140,
+        "width": 1488,
+        "color": 2
+      },
+      "id": "a9db22ef-ec72-4892-9ba8-2fd19558ab34",
+      "name": "Lane 3 Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        2400
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 9 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "8f2bc72b-121c-4ab1-a82d-36850c607d65",
+      "name": "L5 Invoices Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        3712
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { lane: 'invoices' } }];"
+      },
+      "id": "def5158b-7e0e-450f-9e9f-8021bb9d82e1",
+      "name": "L5 Start",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        3712
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.qbBase }}/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "quickBooksOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "select * from Invoice where Balance > '0' MAXRESULTS 1000"
+            },
+            {
+              "name": "minorversion",
+              "value": "75"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "5c683197-1f12-495f-a1ba-b4dabc4bf300",
+      "name": "L5 Get Open Invoices (QuickBooks)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        704,
+        3712
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "quickBooksOAuth2Api": {
+          "id": "",
+          "name": "QuickBooks Online OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblInvoices }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "requestInterval": 250
+            }
+          }
+        }
+      },
+      "id": "cd18fe87-c22e-423d-8029-5b9c4bf7419c",
+      "name": "L5 Get Invoice Follow-ups (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        3712
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst invs = (($('L5 Get Open Invoices (QuickBooks)').first().json.QueryResponse) || {}).Invoice || [];\nconst recs = [];\nfor (const p of $input.all()) for (const r of (p.json.records || [])) recs.push(r);\nconst nowIso = new Date().toISOString();\nconst today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });\nconst addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);\nconst daysBetween = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);\nconst bucket = d => d <= 30 ? '1-30 days' : d <= 60 ? '31-60 days' : d <= 90 ? '61-90 days' : 'Over 90 days';\nconst note = (old, txt) => (old ? old + '\\n' : '') + '[' + today + '] ' + txt;\nconst money = n => '$' + Number(n || 0).toFixed(2);\nconst label = (f, i) => 'Invoice ' + (f['Invoice No.'] || (i && i.DocNumber) || '?') + ' ' + (f['Customer'] || (i && i.CustomerRef && i.CustomerRef.name) || '') + ' ' + money(i ? i.Balance : f['Open Balance']);\nconst invById = {};\ninvs.forEach(i => { invById[String(i.Id)] = i; });\nconst recById = {};\nrecs.forEach(r => { const q = String((r.fields || {})['QuickBooks Invoice ID'] || ''); if (q) recById[q] = r; });\nconst refreshes = [], drafts = [], toSend = [], escalated = [], paid = [], partial = [];\nconst counts = { openInvoices: invs.length, overdue: 0, belowMinimum: 0, inGracePeriod: 0, newDrafts: 0, followUpDrafts: 0, toSend: 0, escalated: 0, paid: 0, partial: 0, blocked: 0, refreshed: 0 };\nconst blocked = [];\nconst draftItem = (i, days, reminderNo, recId, extraFields, status, notes) => ({ recId, invoiceId: String(i.Id), docNumber: i.DocNumber || '', customer: (i.CustomerRef && i.CustomerRef.name) || '', email: (i.BillEmail && i.BillEmail.Address) || '', invoiceDate: i.TxnDate || null, dueDate: i.DueDate || null, total: Number(i.TotalAmt || 0), balance: Number(i.Balance || 0), daysOverdue: days, bucket: bucket(days), reminderNo, status, extraFields: extraFields || {}, notes: notes || '' });\n// 1. Overdue invoices in QuickBooks\nfor (const i of invs) {\n  if (!i.DueDate || i.DueDate >= today || Number(i.Balance) <= 0) continue;\n  counts.overdue++;\n  const id = String(i.Id);\n  const days = daysBetween(i.DueDate, today);\n  const r = recById[id];\n  const base = { 'Days Overdue': days, 'Aging Bucket': bucket(days), 'Open Balance': Number(i.Balance), 'Due Date': i.DueDate, 'Last Checked': nowIso };\n  if (!r) {\n    if (Number(i.Balance) < cfg.invoiceMinBalance) { counts.belowMinimum++; continue; }\n    if (days < cfg.reminderGraceDays) { counts.inGracePeriod++; continue; }\n    if (counts.newDrafts + counts.followUpDrafts >= cfg.maxItemsPerRun) continue;\n    if (days >= cfg.escalateDaysOverdue) {\n      drafts.push(draftItem(i, days, 1, null, {}, 'Escalated', note('', days + ' days overdue at first check (escalation point is ' + cfg.escalateDaysOverdue + ' days). A person should decide the next step, e.g. call the customer. To email the draft instead, set Status to Approved to Send.')));\n      escalated.push(label({}, i) + ' - ' + days + ' days overdue, no reminder sent yet'); counts.escalated++;\n    } else {\n      drafts.push(draftItem(i, days, 1, null, {}, 'Pending Approval', note('', 'Overdue ' + days + ' days. Review the reminder draft, edit if needed, fill in Reviewer, then set Status to Approved to Send (or On Hold / Cancelled).')));\n    }\n    counts.newDrafts++;\n    continue;\n  }\n  const f = r.fields || {};\n  const st = f['Status'];\n  let notes = f['Notes'] || '';\n  const oldBal = Number(f['Open Balance'] || 0);\n  if (oldBal && Number(i.Balance) < oldBal - 0.005) {\n    notes = note(notes, 'Partial payment recorded in QuickBooks: open balance changed from ' + money(oldBal) + ' to ' + money(i.Balance) + '.');\n    partial.push(label(f, i) + ' (was ' + money(oldBal) + ')'); counts.partial++;\n  }\n  const count = Number(f['Reminder Count'] || 0);\n  if (st === 'Approved to Send') {\n    const to = cfg.testMode ? cfg.testRecipient : (f['Customer Email'] || '');\n    if (!f['Draft Subject'] || !f['Draft Body'] || !to) {\n      refreshes.push({ id: r.id, fields: Object.assign({}, base, { 'Status': 'Pending Approval', 'Notes': note(notes, 'Not sent: ' + (!to ? 'Customer Email is empty.' : 'Draft Subject or Draft Body is empty.')) }) });\n      blocked.push(label(f, i)); counts.blocked++;\n    } else {\n      toSend.push({ recId: r.id, invoiceId: id, label: label(f, i), to, subject: (cfg.testMode ? '[FICTIONAL TEST] ' : '') + f['Draft Subject'], body: f['Draft Body'], reviewer: f['Reviewer'] || '', count, notes, base });\n      counts.toSend++;\n    }\n    continue;\n  }\n  if (st === 'Reminder Sent' && f['Next Reminder Date'] && f['Next Reminder Date'] <= today) {\n    if (count >= cfg.maxReminders || days >= cfg.escalateDaysOverdue) {\n      refreshes.push({ id: r.id, fields: Object.assign({}, base, { 'Status': 'Escalated', 'Notes': note(notes, 'Still unpaid after ' + count + ' reminder(s), ' + days + ' days overdue. Escalated for a person to decide the next step (call the customer, agree a payment plan, or put On Hold).') }) });\n      escalated.push(label(f, i) + ' - ' + count + ' reminder(s) sent, ' + days + ' days overdue'); counts.escalated++;\n    } else if (counts.newDrafts + counts.followUpDrafts < cfg.maxItemsPerRun) {\n      drafts.push(draftItem(i, days, count + 1, r.id, base, 'Pending Approval', note(notes, 'Still unpaid ' + cfg.reminderIntervalDays + ' days after reminder ' + count + '. Follow-up draft (reminder ' + (count + 1) + ') ready for approval.')));\n      counts.followUpDrafts++;\n    }\n    continue;\n  }\n  if (st === 'Paid / Closed' || st === 'Cancelled') continue;\n  refreshes.push({ id: r.id, fields: Object.assign({}, base, notes !== (f['Notes'] || '') ? { 'Notes': notes } : {}) });\n}\ncounts.refreshed = refreshes.length;\n// 2. Tracked invoices no longer open in QuickBooks\nfor (const r of recs) {\n  const f = r.fields || {};\n  const id = String(f['QuickBooks Invoice ID'] || '');\n  if (!id || invById[id] || f['Status'] === 'Paid / Closed' || f['Status'] === 'Cancelled') continue;\n  refreshes.push({ id: r.id, fields: { 'Status': 'Paid / Closed', 'Open Balance': 0, 'Last Checked': nowIso, 'Notes': note(f['Notes'], 'QuickBooks shows no open balance (paid, or voided/deleted). Reminders stopped.') } });\n  paid.push(label(f, null)); counts.paid++;\n}\nreturn [{ json: { refreshes, drafts, toSend, escalated, paid, partial, blocked, summary: { today, minBalance: cfg.invoiceMinBalance, graceDays: cfg.reminderGraceDays, counts } } }];\n"
+      },
+      "id": "1876cf9e-efc6-4720-a6cc-08d62096d6f0",
+      "name": "L5 Plan Invoice Actions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        3712
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json.refreshes; const out = []; for (let i = 0; i < r.length; i += 10) out.push({ json: { payload: { records: r.slice(i, i + 10), typecast: true } } }); return out;"
+      },
+      "id": "6b6a9852-d34c-427a-a425-4ecbc3abe8af",
+      "name": "L5 Batch Record Updates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        3504
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblInvoices }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "c9f57f80-7de3-41f5-925b-e20d62225f1d",
+      "name": "L5 Update Invoice Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        3504
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst list = $input.first().json.drafts;\nconst system = [\n  'You are Jev, an assistant to an accounts receivable team. Draft a short, polite, professional payment reminder email to a customer about one overdue invoice, on behalf of ' + cfg.clientName + '.',\n  'Plain text only, no markdown. At most 120 words in the body. Include the invoice number, open balance, and due date.',\n  'Tone: reminder 1 is friendly and assumes it was overlooked. Reminder 2 or later is polite but firmer and asks the customer to confirm when payment will be made.',\n  'Say that if payment has already been sent, they can disregard the message or reply to let us know. Invite them to reply with any questions.',\n  'Do not threaten. Do not mention late fees, interest, collections, credit reporting, or legal action. Do not invent payment links, bank details, deadlines, or policies. Do not mention AI.',\n  'Sign off exactly as: ' + cfg.arSenderName,\n  'Reply with ONLY a JSON object: {\"subject\":\"<subject>\",\"body\":\"<body with \\\\n line breaks>\"}'\n].join('\\n');\nreturn list.map(r => ({ json: { ...r, body: { model: cfg.model, temperature: 0.2, max_tokens: 450, messages: [\n  { role: 'system', content: system },\n  { role: 'user', content: 'Customer: ' + (r.customer || '(customer)') + '\\nInvoice number: ' + r.docNumber + '\\nInvoice date: ' + r.invoiceDate + '\\nDue date: ' + r.dueDate + '\\nInvoice total: $' + r.total.toFixed(2) + '\\nOpen balance: $' + r.balance.toFixed(2) + '\\nDays overdue: ' + r.daysOverdue + '\\nThis is reminder number: ' + r.reminderNo + '\\n(Fictional / Sample Data)' }\n] } } }));\n"
+      },
+      "id": "5406ca4d-b3bc-4be3-bb25-d2cb80706083",
+      "name": "L5 Prepare Reminder Drafts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        3680
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 300
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "45548b39-136b-4a15-a49e-22a185ef2eb6",
+      "name": "L5 Ask Jev for Reminder (OpenRouter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        3680
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "OpenRouter API (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst prep = $('L5 Prepare Reminder Drafts').all();\nconst res = $input.all();\nconst BT = String.fromCharCode(96);\nconst records = [];\nlet aiFailed = 0;\nfor (let i = 0; i < prep.length; i++) {\n  const p = prep[i].json;\n  const r = (res[i] && res[i].json) || {};\n  let d = null;\n  try {\n    const t = r.choices[0].message.content.split(BT + BT + BT + 'json').join('').split(BT + BT + BT).join('').trim();\n    d = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));\n    if (!d.subject || !d.body) d = null;\n  } catch (e) { d = null; }\n  let source = 'Jev';\n  if (!d) {\n    aiFailed++; source = 'Template (AI unavailable)';\n    d = { subject: (p.reminderNo > 1 ? 'Second reminder' : 'Payment reminder') + ': Invoice ' + p.docNumber + ' ($' + p.balance.toFixed(2) + ')',\n      body: 'Hello,\\n\\nThis is a reminder that invoice ' + p.docNumber + ' for $' + p.balance.toFixed(2) + ' was due on ' + p.dueDate + ' and is still open on our records.\\n\\nIf payment has already been sent, please disregard this message or reply to let us know. Otherwise, could you let us know when we can expect payment? Reply to this email with any questions.\\n\\nThank you,\\n' + cfg.arSenderName };\n  }\n  const fields = Object.assign({}, p.extraFields, {\n    'Invoice Key': 'INV-' + p.invoiceId, 'QuickBooks Invoice ID': p.invoiceId, 'Invoice No.': p.docNumber, 'Customer': p.customer,\n    'Customer Email': p.email || null, 'Invoice Date': p.invoiceDate, 'Due Date': p.dueDate, 'Invoice Total': p.total, 'Open Balance': p.balance,\n    'Days Overdue': p.daysOverdue, 'Aging Bucket': p.bucket, 'Status': p.status, 'Last Checked': new Date().toISOString(),\n    'Draft Subject': String(d.subject).slice(0, 200), 'Draft Body': String(d.body).slice(0, 3000), 'Draft Source': source, 'Notes': p.notes\n  });\n  if (!p.recId) fields['Reminder Count'] = 0;\n  records.push({ fields });\n}\nconst out = [];\nfor (let i = 0; i < records.length; i += 10) out.push({ json: { payload: { typecast: true, performUpsert: { fieldsToMergeOn: ['Invoice Key'] }, records: records.slice(i, i + 10) }, aiFailed } });\nreturn out;\n"
+      },
+      "id": "c26bf516-84e0-464b-95a5-ab1ebcf471ed",
+      "name": "L5 Build Reminder Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        3680
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblInvoices }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "25e6d516-1641-4194-87e7-5506c8366a5e",
+      "name": "L5 Save Reminder Drafts (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2048,
+        3680
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first().json.toSend.map(x => ({ json: x }));\n"
+      },
+      "id": "4c37398c-699c-4afd-8487-07b0bd7b0bf2",
+      "name": "L5 Reminders to Send",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "caacb7b1-eaf0-4ab6-b6e5-91b6c7ec3219",
+      "name": "L5 Send Reminder Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        3872
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const p = $('L5 Reminders to Send').item.json;\nconst cfg = $('Config').first().json;\nconst now = new Date();\nconst today = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });\nconst next = new Date(Date.parse(today + 'T00:00:00Z') + cfg.reminderIntervalDays * 86400000).toISOString().slice(0, 10);\nconst n = p.count + 1;\nreturn { json: { recId: p.recId, ok: true,\n  fields: Object.assign({}, p.base, { 'Status': 'Reminder Sent', 'Reminder Count': n, 'Last Reminder Date': today, 'Next Reminder Date': next, 'Notes': (p.notes ? p.notes + '\\n' : '') + '[' + today + '] Reminder ' + n + ' emailed to ' + p.to + '. Next check ' + next + '.' }),\n  audit: { 'Event ID': 'INVREM-' + p.invoiceId + '-' + $execution.id, 'Timestamp': now.toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'Invoice Reminder', 'Status': 'Success', 'QuickBooks ID': 'INV-' + p.invoiceId, 'Details': 'Reminder ' + n + ' for ' + p.label + ' emailed to ' + p.to + ' after approval by ' + (p.reviewer || 'unknown') + '. Subject: ' + p.subject } } };\n"
+      },
+      "id": "2bf27bef-a2da-4b39-92ca-639b54ea3848",
+      "name": "L5 Mark Sent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        3824
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const p = $('L5 Reminders to Send').item.json;\nconst cfg = $('Config').first().json;\nconst e = $json.error || {};\nconst reason = String((e.message || 'Email send failed') + (e.description ? ' - ' + e.description : '')).split(',\"isAxiosError\"')[0].slice(0, 300);\nconst now = new Date().toISOString();\nreturn { json: { recId: p.recId, ok: false, reason: p.label + ': ' + reason,\n  fields: Object.assign({}, p.base, { 'Status': 'Send Failed', 'Notes': (p.notes ? p.notes + '\\n' : '') + '[' + now.slice(0, 10) + '] Reminder NOT sent (retried 3 times): ' + reason + '. Set Status back to Approved to Send to retry.' }),\n  audit: { 'Event ID': 'INVREM-' + p.invoiceId + '-' + $execution.id, 'Timestamp': now, 'Workflow': cfg.workflowName, 'Event Type': 'Invoice Reminder', 'Status': 'Failed', 'QuickBooks ID': 'INV-' + p.invoiceId, 'Details': 'Reminder for ' + p.label + ' could not be emailed: ' + reason } } };\n"
+      },
+      "id": "3b44e96c-3405-444e-a4c4-d680997c4f2f",
+      "name": "L5 Mark Send Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        3968
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json);\nconst out = [];\nfor (let i = 0; i < items.length; i += 10) {\n  const c = items.slice(i, i + 10);\n  out.push({ json: { reqPayload: { typecast: true, records: c.map(x => ({ id: x.recId, fields: x.fields })) }, auditPayload: { typecast: true, records: c.map(x => ({ fields: x.audit })) }, failures: c.filter(x => !x.ok).map(x => x.reason) } });\n}\nreturn out;\n"
+      },
+      "id": "59dd754b-1d0b-4063-8917-8a279e05002f",
+      "name": "L5 Batch Sent Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        3872
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblInvoices }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.reqPayload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "594d4a9d-a0fa-44cf-bab7-7a9961d5bab8",
+      "name": "L5 Update Sent Reminders (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2272,
+        3808
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.auditPayload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "a239aed6-e998-4ff1-b3f4-14d363b2e6c4",
+      "name": "L5 Write Reminder Audit (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2272,
+        3952
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst f = $input.all().flatMap(i => i.json.failures || []);\nif (!f.length) return [];\nreturn [{ json: { alertEmail: cfg.alertEmail, subject: '[QBAI ALERT] ' + f.length + ' invoice reminder email(s) could not be sent', body: 'These approved invoice reminders could not be emailed (execution ' + $execution.id + '):\\n\\n' + f.join('\\n') + '\\n\\nThey are marked \"Send Failed\" in Airtable (Invoice Follow-ups). Fix the cause, then set Status back to Approved to Send.' } }];\n"
+      },
+      "id": "69c87867-e540-4712-be42-32d199dd16d1",
+      "name": "L5 Alert If Send Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        4080
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst s = $input.first().json.summary;\nreturn [{ json: { payload: { typecast: true, records: [{ fields: { 'Event ID': 'INVCHK-' + $execution.id, 'Timestamp': new Date().toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'Invoice Check', 'Status': 'Success', 'Details': JSON.stringify(s, null, 2) } }] } } }];\n"
+      },
+      "id": "7eaa27ad-ca8d-46c8-9d13-ecae8d9d6002",
+      "name": "L5 Build Invoice Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "airtableTokenApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          }
+        }
+      },
+      "id": "3fdb772c-51ee-42e6-a3b1-50eadf6195fc",
+      "name": "L5 Write Invoice Log (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        4128
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst j = $input.first().json;\nconst c = j.summary.counts;\nconst toApprove = j.drafts.filter(d => d.status === 'Pending Approval').length;\nif (!toApprove && !c.escalated && !c.paid && !c.partial && !c.blocked) return [];\nconst parts = [];\nif (toApprove) parts.push(toApprove + ' invoice reminder draft(s) are waiting for approval in Airtable (Invoice Follow-ups, Status = Pending Approval).');\nif (j.escalated.length) parts.push('Escalated - needs a person to decide the next step (call the customer, agree a payment plan, or put On Hold):\\n' + j.escalated.join('\\n'));\nif (j.paid.length) parts.push('No longer open in QuickBooks (paid, voided or deleted) - reminders stopped:\\n' + j.paid.join('\\n'));\nif (j.partial.length) parts.push('Partial payments recorded:\\n' + j.partial.join('\\n'));\nif (j.blocked.length) parts.push('Approved but not sent (missing subject, body or customer email - moved back to Pending Approval):\\n' + j.blocked.join('\\n'));\nreturn [{ json: { alertEmail: cfg.alertEmail, subject: '[QBAI] Invoices: ' + toApprove + ' to approve, ' + c.escalated + ' escalated, ' + c.paid + ' paid/closed', body: parts.join('\\n\\n') + '\\n\\n(Fictional / Sample Data - QuickBooks AI Operations Assistant)' } }];\n"
+      },
+      "id": "30197d2c-e3b3-49e4-ab37-95d99cc4584a",
+      "name": "L5 Attention Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        4288
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## LANE 5 - Overdue Invoice Follow-up\nWeekdays 9:30. Open QuickBooks invoices past due (after a 3-day grace period, balance at least $25) are tracked in Airtable (Invoice Follow-ups). Jev drafts a reminder -> a person approves (Status = Approved to Send) -> Gmail sends -> next check in 7 days. Still unpaid after 2 reminders, or 60+ days overdue -> Escalated for a person (no automatic email). Invoice no longer open in QuickBooks -> Paid / Closed. Partial payments are noted. On Hold / Cancelled are left alone. TEST MODE sends all emails to the test recipient.",
+        "height": 124,
+        "width": 1224,
+        "color": 4
+      },
+      "id": "da0296ec-ed5c-4a5a-806d-bf345c6fb330",
+      "name": "Lane 5 Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        3488
+      ]
+    },
+    {
+      "id": "6d5a82d6-95fb-4ffc-921e-f2388e8ab8a6",
+      "name": "L6 Weekly Report Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        4700
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "expression": "45 7 * * 1",
+              "field": "cronExpression"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "0fc4c995-70ca-497d-a009-b71ce273fd10",
+      "name": "L6 Start",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        4700
+      ],
+      "parameters": {
+        "jsCode": "return [{ json: { lane: 'weekly' } }];",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "0cd23a3a-68a4-4599-9848-c2c6b7427a90",
+      "name": "L6 Get Review Records (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        4700
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "method": "GET",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "pagination": {
+            "pagination": {
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "paginationCompleteWhen": "other",
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "type": "qs",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "requestInterval": 250
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblReview }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "5dc1b645-2644-4e9c-8f62-8c9f4321a73d",
+      "name": "L6 Get Exceptions (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        4700
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "method": "GET",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "pagination": {
+            "pagination": {
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "paginationCompleteWhen": "other",
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "type": "qs",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "requestInterval": 250
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblExceptions }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "fc928157-2fbb-4cfe-a6ba-02eb647b3e72",
+      "name": "L6 Get Document Requests (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1140,
+        4700
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "method": "GET",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "pagination": {
+            "pagination": {
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "paginationCompleteWhen": "other",
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "type": "qs",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "requestInterval": 250
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblDocReq }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "63a308e1-9b73-4c51-9e14-e4ab5d10b2e5",
+      "name": "L6 Get Invoice Follow-ups (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        4700
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "method": "GET",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "pagination": {
+            "pagination": {
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "paginationCompleteWhen": "other",
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "type": "qs",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "requestInterval": 250
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblInvoices }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "7f686061-6175-42ed-b563-f4e544a82bd2",
+      "name": "L6 Get Recent Audit Log (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1580,
+        4700
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "method": "GET",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {
+          "pagination": {
+            "pagination": {
+              "completeExpression": "={{ !$response.body.offset }}",
+              "limitPagesFetched": true,
+              "maxRequests": 20,
+              "paginationCompleteWhen": "other",
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "offset",
+                    "type": "qs",
+                    "value": "={{ $response.body.offset }}"
+                  }
+                ]
+              },
+              "requestInterval": 250
+            }
+          }
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filterByFormula",
+              "value": "IS_AFTER({Timestamp}, DATEADD(TODAY(), -7, 'days'))"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "executeOnce": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "6a5bcbf4-1d9a-4f4c-b7e6-676b4b9b52ca",
+      "name": "L6 Build Weekly Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        4700
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst rows = n => { const a = []; for (const p of $(n).all()) for (const r of (p.json.records || [])) a.push(r.fields || {}); return a; };\nconst rev = rows('L6 Get Review Records (Airtable)');\nconst exc = rows('L6 Get Exceptions (Airtable)');\nconst doc = rows('L6 Get Document Requests (Airtable)');\nconst inv = rows('L6 Get Invoice Follow-ups (Airtable)');\nconst aud = rows('L6 Get Recent Audit Log (Airtable)');\nconst today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });\nconst startMs = Date.parse(today + 'T00:00:00+08:00') - 6 * 86400000;\nconst start = new Date(startMs + 8 * 3600000).toISOString().slice(0, 10);\nconst inWeek = d => d && Date.parse(d) >= startMs;\nconst cnt = (a, f) => a.filter(f).length;\nconst by = (a, k) => a.reduce((m, x) => { const v = x[k] || '(blank)'; m[v] = (m[v] || 0) + 1; return m; }, {});\nconst sum = (a, k) => Math.round(a.reduce((s, x) => s + Number(x[k] || 0), 0) * 100) / 100;\nconst daysAgo = d => Math.floor((Date.now() - Date.parse(d)) / 86400000);\n// Expenses\nconst expenses = {\n  newThisWeek: cnt(rev, r => inWeek(r['Processing Date'])),\n  waitingForReview: cnt(rev, r => ['New', 'Pending Review'].includes(r['Review Status'])),\n  approvedWaitingForQuickBooks: cnt(rev, r => ['Approved', 'Changed'].includes(r['Review Status'])),\n  syncFailed: cnt(rev, r => r['Review Status'] === 'Sync Failed'),\n  rejected: cnt(rev, r => r['Review Status'] === 'Rejected'),\n  updatedInQuickBooksThisWeek: cnt(aud, a => a['Event Type'] === 'QuickBooks Update' && a['Status'] === 'Success'),\n  autoApprovedAllTime: cnt(rev, r => r['Decision'] === 'Auto-Approved'),\n  totalTracked: rev.length\n};\n// Exceptions\nconst openExc = exc.filter(e => e['Status'] === 'Open');\nconst oldest = openExc.filter(e => e['Detected Date']).sort((a, b) => Date.parse(a['Detected Date']) - Date.parse(b['Detected Date']))[0];\nconst exceptions = { open: openExc.length, openBySeverity: by(openExc, 'Severity'), openByType: by(openExc, 'Type'), newThisWeek: cnt(exc, e => inWeek(e['Detected Date'])), oldestOpenDays: oldest ? daysAgo(oldest['Detected Date']) : 0 };\n// Receipts\nconst receipts = { missing: cnt(rev, r => r['Receipt Status'] === 'Missing' && r['Review Status'] !== 'Rejected'), requestsByStatus: by(doc, 'Status'), requestsSentThisWeek: cnt(aud, a => a['Event Type'] === 'Document Request' && a['Status'] === 'Success') };\n// Invoices\nconst openInv = inv.filter(i => !['Paid / Closed', 'Cancelled'].includes(i['Status']));\nconst invoices = { trackedOpen: openInv.length, openBalance: sum(openInv, 'Open Balance'), byAgingBucket: by(openInv, 'Aging Bucket'), byStatus: by(openInv, 'Status'),\n  remindersSentThisWeek: cnt(aud, a => a['Event Type'] === 'Invoice Reminder' && a['Status'] === 'Success'),\n  closedThisWeek: cnt(inv, i => i['Status'] === 'Paid / Closed' && inWeek(i['Last Checked'])),\n  escalated: openInv.filter(i => i['Status'] === 'Escalated').map(i => 'Invoice ' + i['Invoice No.'] + ' ' + (i['Customer'] || '') + ' $' + Number(i['Open Balance'] || 0).toFixed(2) + ' (' + (i['Days Overdue'] || 0) + ' days)') };\n// System health\nconst health = { errorsThisWeek: cnt(aud, a => a['Event Type'] === 'Error'), emailSendFailuresThisWeek: cnt(aud, a => ['Document Request', 'Invoice Reminder'].includes(a['Event Type']) && a['Status'] === 'Failed'), updatesRefusedBySafetyCheckThisWeek: cnt(aud, a => a['Event Type'] === 'QuickBooks Update' && a['Status'] === 'Failed'), runsLogged: by(aud.filter(a => ['Intake Run', 'AI Review', 'Receipt Check', 'Invoice Check'].includes(a['Event Type'])), 'Event Type') };\n// Actions for people\nconst actions = [];\nif (expenses.waitingForReview) actions.push(expenses.waitingForReview + ' expense(s) waiting for review (Airtable: 1. Review Queue).');\nif (expenses.syncFailed) actions.push(expenses.syncFailed + ' expense(s) could not be updated in QuickBooks (Review Status = Sync Failed).');\nif (exceptions.open) actions.push(exceptions.open + ' open exception(s) (Airtable: Open Exceptions)' + (exceptions.openBySeverity.High ? ', ' + exceptions.openBySeverity.High + ' high severity' : '') + '.');\nconst docPend = (receipts.requestsByStatus['Pending Approval'] || 0), docEsc = (receipts.requestsByStatus['Escalated'] || 0), docRec = (receipts.requestsByStatus['Received'] || 0);\nif (docPend) actions.push(docPend + ' receipt request draft(s) to approve or cancel.');\nif (docRec) actions.push(docRec + ' received receipt(s) to check and mark Verified.');\nif (docEsc) actions.push(docEsc + ' escalated receipt request(s) need a decision.');\nconst invPend = invoices.byStatus['Pending Approval'] || 0;\nif (invPend) actions.push(invPend + ' invoice reminder draft(s) to approve, hold or cancel.');\nif (invoices.escalated.length) actions.push(invoices.escalated.length + ' escalated overdue invoice(s) need a decision (call, payment plan, or On Hold).');\nif (health.errorsThisWeek) actions.push(health.errorsThisWeek + ' system error(s) logged this week - check the Audit Log.');\nif (health.emailSendFailuresThisWeek) actions.push(health.emailSendFailuresThisWeek + ' email(s) could not be sent this week (Status = Send Failed).');\nif (health.updatesRefusedBySafetyCheckThisWeek) actions.push(health.updatesRefusedBySafetyCheckThisWeek + ' QuickBooks update(s) were refused by the safety check - see the Audit Log.');\nconst metrics = { period: { start, end: today }, client: cfg.clientName, expenses, exceptions, receipts, invoices, health, actions };\nconst system = 'You are Jev, an assistant to a bookkeeping team. Write a short weekly summary for the team lead from the metrics JSON. Plain text, no markdown, 3 to 5 sentences, then the line \"Top priorities:\" followed by up to 3 lines starting with \"- \". Use ONLY numbers that appear in the JSON; do not calculate new figures, estimate time saved, judge accuracy, or invent causes. If a value is 0, you may say so briefly. Do not describe or guess the cause of errors or failures; just state the count and that details are in the Audit Log. Do not explain why any item was escalated, flagged or overdue. Neutral, professional tone.';\nreturn [{ json: { metrics, body: { model: cfg.model, temperature: 0.2, max_tokens: 500, messages: [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify(metrics) }] } } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "18dac79a-d4b5-4cff-acc4-9cd80d909dce",
+      "name": "L6 Ask Jev for Summary (OpenRouter)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2020,
+        4700
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "method": "POST",
+        "nodeCredentialType": "openRouterApi",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "openRouterApi": {
+          "id": "",
+          "name": "OpenRouter API (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "31cd7c23-bb1e-45fd-927a-be8cf1f3dac5",
+      "name": "L6 Build Report Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        4700
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Config').first().json;\nconst m = $('L6 Build Weekly Metrics').first().json.metrics;\nconst r = $input.first().json || {};\nlet summary = '', source = 'Jev';\ntry { summary = String(r.choices[0].message.content || '').trim(); } catch (e) { summary = ''; }\nif (!summary) { source = 'none'; summary = 'AI summary unavailable this week. The figures below are complete.'; }\nconst esc = s => String(s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;');\nconst money = n => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });\nconst td = 'style=\"padding:6px 10px;border-bottom:1px solid #e5e7eb\"';\nconst row = (k, v) => '<tr><td ' + td + '>' + esc(k) + '</td><td ' + td + ' align=\"right\"><b>' + esc(v) + '</b></td></tr>';\nconst table = (title, rows) => '<h3 style=\"margin:22px 0 6px;font-size:15px;color:#111827\">' + esc(title) + '</h3><table cellspacing=\"0\" style=\"border-collapse:collapse;width:100%;max-width:560px;font-size:14px\">' + rows.join('') + '</table>';\nconst obj = o => Object.keys(o).length ? Object.keys(o).map(k => k + ': ' + o[k]).join(', ') : 'none';\nconst e = m.expenses, x = m.exceptions, rc = m.receipts, iv = m.invoices, h = m.health;\nconst html = '<div style=\"font-family:Arial,Helvetica,sans-serif;color:#1f2937;max-width:600px\">' +\n  '<p style=\"font-size:12px;color:#b45309;margin:0 0 8px\">FICTIONAL / SAMPLE DATA - portfolio demonstration</p>' +\n  '<h2 style=\"margin:0;font-size:20px\">Weekly Bookkeeping Report</h2>' +\n  '<p style=\"margin:4px 0 16px;color:#6b7280\">' + esc(m.client) + ' | ' + m.period.start + ' to ' + m.period.end + '</p>' +\n  '<div style=\"background:#f3f4f6;padding:12px 14px;border-radius:6px;white-space:pre-wrap;font-size:14px\">' + esc(summary) + '</div>' +\n  (m.actions.length ? '<h3 style=\"margin:22px 0 6px;font-size:15px\">Needs a person</h3><ul style=\"margin:0;padding-left:18px;font-size:14px\">' + m.actions.map(a => '<li>' + esc(a) + '</li>').join('') + '</ul>' : '<p>Nothing is waiting for a person this week.</p>') +\n  table('Expenses', [row('New expenses this week', e.newThisWeek), row('Waiting for review', e.waitingForReview), row('Approved, waiting for QuickBooks update', e.approvedWaitingForQuickBooks), row('Updated in QuickBooks this week', e.updatedInQuickBooksThisWeek), row('Could not update (Sync Failed)', e.syncFailed), row('Auto-approved (all time)', e.autoApprovedAllTime)]) +\n  table('Exceptions', [row('Open', x.open), row('Open by severity', obj(x.openBySeverity)), row('New this week', x.newThisWeek), row('Oldest open (days)', x.oldestOpenDays)]) +\n  table('Receipts', [row('Expenses with missing receipts', rc.missing), row('Requests sent this week', rc.requestsSentThisWeek), row('Requests by status', obj(rc.requestsByStatus))]) +\n  table('Overdue invoices', [row('Open overdue invoices tracked', iv.trackedOpen), row('Open balance', money(iv.openBalance)), row('By age', obj(iv.byAgingBucket)), row('Reminders sent this week', iv.remindersSentThisWeek), row('Paid / closed this week', iv.closedThisWeek)]) +\n  (iv.escalated.length ? '<p style=\"font-size:14px\"><b>Escalated invoices:</b><br>' + iv.escalated.map(esc).join('<br>') + '</p>' : '') +\n  table('System health', [row('Errors logged this week', h.errorsThisWeek), row('Emails that could not be sent', h.emailSendFailuresThisWeek), row('QuickBooks updates refused by safety check', h.updatesRefusedBySafetyCheckThisWeek), row('Runs logged', obj(h.runsLogged))]) +\n  '<p style=\"margin-top:22px;font-size:12px;color:#6b7280\">Summary written by Jev (AI) from the figures above; figures come directly from Airtable. Decisions remain with the bookkeeping team.<br>QuickBooks AI Operations Assistant | Fictional / Sample Data</p></div>';\nconst subject = '[QBAI] Weekly Bookkeeping Report: ' + m.period.start + ' to ' + m.period.end;\nreturn [{ json: { to: cfg.alertEmail, subject, html, log: { typecast: true, records: [{ fields: { 'Event ID': 'WEEKLY-' + $execution.id, 'Timestamp': new Date().toISOString(), 'Workflow': cfg.workflowName, 'Event Type': 'Weekly Report', 'Status': 'Success', 'Details': JSON.stringify({ summarySource: source, metrics: m }, null, 2).slice(0, 90000) } }] } } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "06d0a76e-0dff-4edc-8e5e-5f00fca6230b",
+      "name": "L6 Send Weekly Report",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2460,
+        4700
+      ],
+      "parameters": {
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "operation": "send",
+        "options": {
+          "appendAttribution": false
+        },
+        "resource": "message",
+        "sendTo": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "",
+          "name": "Gmail OAuth2 (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "cfff74df-da14-4298-8a54-b911f56d254d",
+      "name": "L6 Write Report Log (Airtable)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2680,
+        4700
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($('L6 Build Report Email').first().json.log) }}",
+        "method": "POST",
+        "nodeCredentialType": "airtableTokenApi",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "=https://api.airtable.com/v0/{{ $('Config').first().json.airtableBase }}/{{ $('Config').first().json.tblAudit }}"
+      },
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token (configure your own)"
+        }
+      }
+    },
+    {
+      "id": "bf3c3141-8746-43e2-a4a9-831a9e69bb68",
+      "name": "Lane 6 Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        4360
+      ],
+      "parameters": {
+        "color": 6,
+        "content": "## LANE 6 - Weekly Report\nMondays 7:45. Reads the Airtable tables only (no QuickBooks calls) and builds the week's figures: expenses, exceptions, receipts, overdue invoices, system errors, and what needs a person. Jev writes a short plain-language summary from those figures only. HTML email to the team + a copy of the figures in the Audit Log. If Jev is unavailable, the report is still sent without the summary.",
+        "height": 260,
+        "width": 2900
+      }
+    }
+  ],
+  "connections": {
+    "L1 Intake Schedule": {
+      "main": [
+        [
+          {
+            "node": "L1 Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Start": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Route to Lane",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Jev Schedule": {
+      "main": [
+        [
+          {
+            "node": "L1b Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Start": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Sync Schedule": {
+      "main": [
+        [
+          {
+            "node": "L2 Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Start": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Lane": {
+      "main": [
+        [
+          {
+            "node": "L1 Get Expenses (QuickBooks)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L1b Get Expense Accounts (QuickBooks)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L2 Get Expense Accounts (QuickBooks)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L3 List Receipt Files (Drive)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L5 Get Open Invoices (QuickBooks)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L6 Get Review Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Get Expenses (QuickBooks)": {
+      "main": [
+        [
+          {
+            "node": "L1 Get Existing Review IDs (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Get Expense Accounts (QuickBooks)": {
+      "main": [
+        [
+          {
+            "node": "L1b Get Approved History (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Get Expense Accounts (QuickBooks)": {
+      "main": [
+        [
+          {
+            "node": "L2 Get Approved Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Get Existing Review IDs (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L1 Normalize, Flag & Keep New",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Normalize, Flag & Keep New": {
+      "main": [
+        [
+          {
+            "node": "L1 Batch Review Records",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L1 Batch Exception Records",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L1 Build Run Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Batch Review Records": {
+      "main": [
+        [
+          {
+            "node": "L1 Create Review Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Batch Exception Records": {
+      "main": [
+        [
+          {
+            "node": "L1 Create Exception Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Build Run Log": {
+      "main": [
+        [
+          {
+            "node": "L1 Write Run Log (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Get Approved History (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L1b Get New Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Get New Records (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L1b Prepare Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Prepare Prompts": {
+      "main": [
+        [
+          {
+            "node": "L1b Ask Jev (OpenRouter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Ask Jev (OpenRouter)": {
+      "main": [
+        [
+          {
+            "node": "L1b Apply Decision Rules",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Apply Decision Rules": {
+      "main": [
+        [
+          {
+            "node": "L1b Batch Review Updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L1b Batch Low-Confidence Exceptions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L1b Build AI Run Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L1b Alert If Jev Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Batch Review Updates": {
+      "main": [
+        [
+          {
+            "node": "L1b Update Review Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Batch Low-Confidence Exceptions": {
+      "main": [
+        [
+          {
+            "node": "L1b Create Exception Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Build AI Run Log": {
+      "main": [
+        [
+          {
+            "node": "L1b Write AI Run Log (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Alert If Jev Failed": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Get Approved Records (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L2 Plan Updates",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Plan Updates": {
+      "main": [
+        [
+          {
+            "node": "L2 Valid Decision?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Valid Decision?": {
+      "main": [
+        [
+          {
+            "node": "L2 Get Expense (QuickBooks)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L2 Result: Not Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Get Expense (QuickBooks)": {
+      "main": [
+        [
+          {
+            "node": "L2 Check & Build Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L2 Result: Not Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Check & Build Update": {
+      "main": [
+        [
+          {
+            "node": "L2 Safe to Update?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Safe to Update?": {
+      "main": [
+        [
+          {
+            "node": "L2 Update Expense Category (QuickBooks)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L2 Result: Not Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Update Expense Category (QuickBooks)": {
+      "main": [
+        [
+          {
+            "node": "L2 Result: Synced",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L2 Result: Not Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Result: Synced": {
+      "main": [
+        [
+          {
+            "node": "L2 Batch Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Result: Not Updated": {
+      "main": [
+        [
+          {
+            "node": "L2 Batch Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Batch Results": {
+      "main": [
+        [
+          {
+            "node": "L2 Update Review Records (Airtable)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L2 Write Audit Records (Airtable)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L2 Alert If Items Not Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Alert If Items Not Updated": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Error Alert": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Error (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L4 Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "L4 Build Crash Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L4 Build Crash Alert": {
+      "main": [
+        [
+          {
+            "node": "L4 Send Crash Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Create Review Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Create Exception Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1 Write Run Log (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Update Review Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Create Exception Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L1b Write AI Run Log (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Update Review Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L2 Write Audit Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Receipts Schedule": {
+      "main": [
+        [
+          {
+            "node": "L3 Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Start": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 List Receipt Files (Drive)": {
+      "main": [
+        [
+          {
+            "node": "L3 Get Receipt Candidates (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Get Receipt Candidates (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L3 Get Document Requests (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Get Document Requests (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L3 Plan Receipt Actions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Plan Receipt Actions": {
+      "main": [
+        [
+          {
+            "node": "L3 Batch Review Updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L3 Batch Request Updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L3 Prepare Draft Requests",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L3 Emails to Send",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L3 Build Receipt Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L3 Attention Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Batch Review Updates": {
+      "main": [
+        [
+          {
+            "node": "L3 Update Review Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Batch Request Updates": {
+      "main": [
+        [
+          {
+            "node": "L3 Update Document Requests (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Prepare Draft Requests": {
+      "main": [
+        [
+          {
+            "node": "L3 Ask Jev for Draft (OpenRouter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Ask Jev for Draft (OpenRouter)": {
+      "main": [
+        [
+          {
+            "node": "L3 Build Request Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Build Request Records": {
+      "main": [
+        [
+          {
+            "node": "L3 Create Document Requests (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Emails to Send": {
+      "main": [
+        [
+          {
+            "node": "L3 Send Request Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Send Request Email": {
+      "main": [
+        [
+          {
+            "node": "L3 Mark Sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L3 Mark Send Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Mark Sent": {
+      "main": [
+        [
+          {
+            "node": "L3 Batch Sent Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Mark Send Failed": {
+      "main": [
+        [
+          {
+            "node": "L3 Batch Sent Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Batch Sent Results": {
+      "main": [
+        [
+          {
+            "node": "L3 Update Sent Requests (Airtable)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L3 Write Request Audit (Airtable)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L3 Alert If Send Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Alert If Send Failed": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Attention Email": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Build Receipt Log": {
+      "main": [
+        [
+          {
+            "node": "L3 Write Receipt Log (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Update Review Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Update Document Requests (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Create Document Requests (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Update Sent Requests (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Write Request Audit (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L3 Write Receipt Log (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Invoices Schedule": {
+      "main": [
+        [
+          {
+            "node": "L5 Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Start": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Get Open Invoices (QuickBooks)": {
+      "main": [
+        [
+          {
+            "node": "L5 Get Invoice Follow-ups (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Get Invoice Follow-ups (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L5 Plan Invoice Actions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Plan Invoice Actions": {
+      "main": [
+        [
+          {
+            "node": "L5 Batch Record Updates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L5 Prepare Reminder Drafts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L5 Reminders to Send",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L5 Build Invoice Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L5 Attention Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Batch Record Updates": {
+      "main": [
+        [
+          {
+            "node": "L5 Update Invoice Records (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Prepare Reminder Drafts": {
+      "main": [
+        [
+          {
+            "node": "L5 Ask Jev for Reminder (OpenRouter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Ask Jev for Reminder (OpenRouter)": {
+      "main": [
+        [
+          {
+            "node": "L5 Build Reminder Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Build Reminder Records": {
+      "main": [
+        [
+          {
+            "node": "L5 Save Reminder Drafts (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Reminders to Send": {
+      "main": [
+        [
+          {
+            "node": "L5 Send Reminder Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Send Reminder Email": {
+      "main": [
+        [
+          {
+            "node": "L5 Mark Sent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "L5 Mark Send Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Mark Sent": {
+      "main": [
+        [
+          {
+            "node": "L5 Batch Sent Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Mark Send Failed": {
+      "main": [
+        [
+          {
+            "node": "L5 Batch Sent Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Batch Sent Results": {
+      "main": [
+        [
+          {
+            "node": "L5 Update Sent Reminders (Airtable)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L5 Write Reminder Audit (Airtable)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "L5 Alert If Send Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Alert If Send Failed": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Attention Email": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Build Invoice Log": {
+      "main": [
+        [
+          {
+            "node": "L5 Write Invoice Log (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Update Invoice Records (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Save Reminder Drafts (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Update Sent Reminders (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Write Reminder Audit (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L5 Write Invoice Log (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Weekly Report Schedule": {
+      "main": [
+        [
+          {
+            "node": "L6 Start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Start": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Get Review Records (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L6 Get Exceptions (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Get Exceptions (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L6 Get Document Requests (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Get Document Requests (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L6 Get Invoice Follow-ups (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Get Invoice Follow-ups (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L6 Get Recent Audit Log (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Get Recent Audit Log (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "L6 Build Weekly Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Build Weekly Metrics": {
+      "main": [
+        [
+          {
+            "node": "L6 Ask Jev for Summary (OpenRouter)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Ask Jev for Summary (OpenRouter)": {
+      "main": [
+        [
+          {
+            "node": "L6 Build Report Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Build Report Email": {
+      "main": [
+        [
+          {
+            "node": "L6 Send Weekly Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Send Weekly Report": {
+      "main": [
+        [
+          {
+            "node": "L6 Write Report Log (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "L6 Write Report Log (Airtable)": {
+      "main": [
+        null,
+        [
+          {
+            "node": "Build Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Manila"
+  },
+  "pinData": {}
+}
